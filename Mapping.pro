@@ -7,6 +7,7 @@
 QT       += core gui sql xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT_QMAKE_EXECUTABLE = /usr/bin/qmake-qt4
 
 TARGET = Mapping
 TEMPLATE = app
