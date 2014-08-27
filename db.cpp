@@ -1,5 +1,9 @@
 #include "db.h"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
+#include <spa/spa.h>
+
 Db::Db(const AppConfig *aConfig, char *key, char *help) :
     config(aConfig), sectionKey(key), sectionHelp(help)
 {
@@ -82,7 +86,6 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
     QString resolv =  q->query.arg(cam).arg(image);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-
         out->error(req.lastError().text());
         return 0;
     }
@@ -98,6 +101,93 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
     }
     return geom;
 
+}
+
+// -------------------------------------------------------
+// Many apriori assumptions for athmospheric data
+// precision good enough for now
+double Db::getSolarAzimuth(const QString cam, const QString image) {
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_FDATA);
+    QString resolv = q->query.arg(cam).arg(image);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return 0;
+    }
+    spa_data = sdata;
+    string date;
+    string time;
+    while(req.next()) {
+            sdata.longitude  = lexical_cast<double>req.value(0);
+            sdata.latitude   = lexical_cast<double>req.value(1);
+            date = lexical_cast<string>( req.value(2) );
+            time = lexical_cast<string>( req.value(3) );
+    }
+    time_struct tdata;
+    tdata = posix_time::to_tm( posix_time::time_from_string(date + " " + time));
+
+    sdata.year     = tdata.tm_year + 1900;
+    sdata.month    = tdata.tm_mon + 1;
+    sdata.day      = tdata.tm_mday;
+    sdata.hour     = tdata.tm_hour;
+    sdata.minute   = tdata.tm_min;
+    sdata.second   = tdata.tm_sec;
+        
+    // bulletin: http://maia.usno.navy.mil/ser7/ser7.dat,
+    // where delta_t = 32.184 + (TAI-UTC) + DUT1
+    // TODO: get data from server
+    sdata.delta_t  = 32.184 + 35. - 0.3;
+        
+    // elevation: water level
+    sdata.elevation= 0.;
+        
+    // manual time zone
+    // TODO: get timezone from meta data
+    sdata.timezone = 2;
+        
+    // weather data
+    // TODO: Get weatherdata from crawler
+    sdata.pressure         = 1200;
+    sdata.temperature      = 15;
+    sdata.slope            = 0;
+    sdata.azm_rotation     = 0;
+        
+    sdata.atmos_refract    = 0.5667;
+    sdata.function         = SPA_ZA;
+    spa_calculate( spa );
+
+    return sdata.azimuth;
+}
+
+// --------------------------------------------------------
+bool Db::readIdMapping(const int * sync_int, const QString * cam1_img, const QString * cam2_img) {
+    QString SQL_QUERY_MATCH, arg_match, sync_id;
+    sync_id = QString::number(sync_int);
+    if ( *sync_id == 0 ) {
+        if ( cam1_img->isEmpty() ) {
+            SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C1;
+            arg_match = *cam1_img;
+        } else {
+            SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C2;
+            arg_match = *cam2_img;
+        }
+    } else {
+        SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_SYNC;
+        arg_match = sync_id;
+    }
+    SqlQuery *q = config->getSqlQuery( SQL_QUERY_MATCH );
+    QString resolv =q->query.arg(arg_match);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return false;
+    }
+    while (req.next()) {
+        *sync_id = req.value(0);
+        *cam1_img= req.value(1);
+        *cam2_img= req.value(2);
+    }
+    return true;
 }
 
 // -------------------------------------------------------
@@ -133,7 +223,7 @@ bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
                       const QString usr, const QString session,
                       int &id, QString &tmWhen, QString &tmSeen) {
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_RIMAGE);
-    QString resolv =  q->query.arg(cam).arg(file).arg(usr);
+    QString resolv = q->query.arg(cam).arg(file).arg(usr);
     out->log(resolv);
     out->log(q->desc);
     QSqlQuery req(db);
@@ -147,7 +237,7 @@ bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
     tmWhen = req.value(1).toString();
     tmSeen = req.value(2).toString();
     return true;
-
+7
 }
 
 
@@ -272,7 +362,6 @@ bool Db::deleteRawCensus(int id) {
     return true;
 
 }
-
 
 // -------------------------------------------------------
 QStringListModel* Db::readRawCensus(QStringListModel* model,

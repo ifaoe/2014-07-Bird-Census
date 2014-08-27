@@ -21,6 +21,11 @@
 #include <qgsfeature.h>
 #include "textlogger.h"
 #include "sqlquery.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
+#include <spa/spa.h>
+
+typedef struct std::tm time_struct;
 
 const char DB_ERR_CFG_DRIVER[] =
               "Fehlerhafter Datenbanktreiber %s + %s in Gruppe %s!\n"
@@ -104,6 +109,7 @@ public:
 
     QgsGeometry* readImageEnvelope(const QString cam, const QString image);
 
+    double Db::getSolarAzimuth(const QString cam, const QString image);
 
 private:
     const AppConfig *config;

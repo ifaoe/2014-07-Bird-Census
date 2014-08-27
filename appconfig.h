@@ -31,6 +31,10 @@ const QString ACFG_SQL_QRY_READ_RIMAGE_TILE = "readRawImageTile";
 const QString ACFG_SQL_QRY_READ_RCENSUS     = "readRawCensus";
 const QString ACFG_SQL_QRY_DEL_RCENSUS      = "deleteRawCensus";
 const QString ACFG_SQL_QRY_READ_IMGENV      = "readImgEnvelope";
+const QString ACFG_SQL_QRY_READ_FDATA       = "readImgFlightData";
+const QString ACFG_SQL_QRY_READ_ID_MAP_C1   = "readIdMappingCam1";
+const QString ACFG_SQL_QRY_READ_ID_MAP_C2   = "readIdMappingCam2";
+const QString ACFG_SQL_QRY_READ_ID_MAP_SYNC = "readIdMappingSyncId";
 
 const char ACFG_ERR_DOUBLE_KEY[] =
       "Zweideutiger Schluessel %s in Gruppe %s!\n"
