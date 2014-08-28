@@ -167,22 +167,22 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
 
 // --------------------------------------------------------
 bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
-    QString SQL_QUERY_MATCH, arg_match, sync_id;
+    QString arg_name, arg_value, sync_id;
     sync_id = QString::number(*sync_int);
     if ( *sync_int == 0 ) {
         if ( cam1_img->isEmpty() ) {
-            SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C2;
-            arg_match = *cam2_img;
+            arg_name  = "cam2_id";
+            arg_value = *cam2_img;
         } else {
-            SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C1;
-            arg_match = *cam1_img;
+            arg_name  = "cam1_id";
+            arg_value = *cam1_img;
         }
     } else {
-        SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_SYNC;
-        arg_match = sync_id;
+        arg_name  = "sync_id";
+        arg_value = sync_id;
     }
-    SqlQuery *q = config->getSqlQuery( SQL_QUERY_MATCH );
-    QString resolv =q->query.arg(arg_match);
+    SqlQuery *q = config->getSqlQuery( ACFG_SQL_QRY_READ_ID_MAP );
+    QString resolv =q->query.arg(arg_name).arg(arg_value);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
         out->error(req.lastError().text());
