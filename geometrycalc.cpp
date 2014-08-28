@@ -4,7 +4,6 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
 {
     QgsGeometry *temp_geo_1, *temp_geo_2, *resultgeom;
     double solar_dir = db->getSolarAzimuth(cam, image_string);
-    qDebug() << solar_dir;
     QString c1_str, c2_str;
     const QString c1 = QString::fromStdString("1");
     const QString c2 = QString::fromStdString("2");
@@ -86,20 +85,13 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
         }
 
     } else if ( ( solar_dir >= 180 ) && ( solar_dir < 270 ) ) {
-        qDebug() << "( solar_dir >= 180 ) && ( solar_dir < 270) ";
-        qDebug() << cam.compare(c1);
         // Fall SW
         // Schneiden Sueden und Westen im Fall C1 -> SB
         // Schneiden Sueden im Fall C2
         // Falls 1. Bild nicht Sueden schneiden
         if (cam.compare(c1) == 0) {
-            qDebug() << "Cam 1";
             temp_geo_1 = db->readImageEnvelope(c1,c1_str);   
-            qDebug() << "temp_geo_1 geladen";
             if( db->readIdMapping( &ssync_id, &sc1_str, &sc2_str) ) {
-                qDebug() << ssync_id;
-                qDebug() << sc1_str;
-                qDebug() << sc2_str;
                 QgsGeometry * sc2_img = db->readImageEnvelope(c2,sc2_str);
                 QgsGeometry * sc1_img = db->readImageEnvelope(c1,sc1_str);
                 QgsGeometry * c2_img  = db->readImageEnvelope(c2,c2_str);
