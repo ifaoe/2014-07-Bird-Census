@@ -49,6 +49,11 @@
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #ifndef __solar_position_algorithm_header
 #define __solar_position_algorithm_header
 
@@ -175,4 +180,8 @@ typedef struct
 //Calculate SPA output values (in structure) based on input values passed in structure
 int spa_calculate(spa_data *spa);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

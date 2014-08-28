@@ -21,9 +21,7 @@
 #include <qgsfeature.h>
 #include "textlogger.h"
 #include "sqlquery.h"
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/lexical_cast.hpp>
-#include <spa/spa.h>
+#include <ctime>
 
 typedef struct std::tm time_struct;
 
@@ -108,8 +106,10 @@ public:
                           QString &tmWhen, QString &tmSeen);
 
     QgsGeometry* readImageEnvelope(const QString cam, const QString image);
+    
+    bool readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img);
 
-    double Db::getSolarAzimuth(const QString cam, const QString image);
+    double getSolarAzimuth(const QString cam, const QString image);
 
 private:
     const AppConfig *config;

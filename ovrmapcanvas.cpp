@@ -1,6 +1,6 @@
 #include "ovrmapcanvas.h"
 #include "cnsmapcanvas.h"
-
+#include "geometrycalc.h"
 // ----------------------------------------------------------------------
 OvrMapCanvas::OvrMapCanvas(QWidget *parent,
                            Ui::MainWindow* aUI,
@@ -303,7 +303,8 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
 
     qgsImgEnvelope = new QgsVectorLayer(props, "ENVELOPE", "memory");
     qgsImgEnvelope->dataProvider()->addAttributes(fields);
-    QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
+    //QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
+    QgsGeometry* qgsImgEnvGeom = validPolyGeometry(db, strCam, strFile);
     if (!qgsImgEnvGeom) return false;
     QgsFeature fet = QgsFeature(qgsImgEnvelope->dataProvider()->fields());
     fet.setGeometry( qgsImgEnvGeom );

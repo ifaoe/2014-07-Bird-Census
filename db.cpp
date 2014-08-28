@@ -1,8 +1,7 @@
 #include "db.h"
-
+#include <iostream>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/lexical_cast.hpp>
-#include <spa/spa.h>
+#include "spa/spa.h"
 
 Db::Db(const AppConfig *aConfig, char *key, char *help) :
     config(aConfig), sectionKey(key), sectionHelp(help)
@@ -112,19 +111,21 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
         out->error(req.lastError().text());
-        return 0;
+        return 0.0;
     }
-    spa_data = sdata;
-    string date;
-    string time;
+    spa_data sdata;
+    QString date, time;
+    double cog;
     while(req.next()) {
-            sdata.longitude  = lexical_cast<double>req.value(0);
-            sdata.latitude   = lexical_cast<double>req.value(1);
-            date = lexical_cast<string>( req.value(2) );
-            time = lexical_cast<string>( req.value(3) );
+            sdata.longitude  = req.value(0).toDouble();
+            sdata.latitude   = req.value(1).toDouble();
+            cog =req.value(2).toDouble();
+            date = req.value(3).toString();
+            time = req.value(4).toString();
     }
     time_struct tdata;
-    tdata = posix_time::to_tm( posix_time::time_from_string(date + " " + time));
+    tdata = boost::posix_time::to_tm( 
+                boost::posix_time::time_from_string(date.toStdString() + " " + time.toStdString()));
 
     sdata.year     = tdata.tm_year + 1900;
     sdata.month    = tdata.tm_mon + 1;
@@ -154,22 +155,27 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
         
     sdata.atmos_refract    = 0.5667;
     sdata.function         = SPA_ZA;
-    spa_calculate( spa );
-
-    return sdata.azimuth;
+    spa_calculate( &sdata );
+    
+    double solar_dir = fmod(sdata.azimuth - cog, 360.0);
+    if (solar_dir < 0) {
+            return solar_dir + 360.0;
+    } else {
+            return solar_dir;
+    }
 }
 
 // --------------------------------------------------------
-bool Db::readIdMapping(const int * sync_int, const QString * cam1_img, const QString * cam2_img) {
+bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
     QString SQL_QUERY_MATCH, arg_match, sync_id;
-    sync_id = QString::number(sync_int);
-    if ( *sync_id == 0 ) {
+    sync_id = QString::number(*sync_int);
+    if ( *sync_int == 0 ) {
         if ( cam1_img->isEmpty() ) {
-            SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C1;
-            arg_match = *cam1_img;
-        } else {
             SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C2;
             arg_match = *cam2_img;
+        } else {
+            SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_C1;
+            arg_match = *cam1_img;
         }
     } else {
         SQL_QUERY_MATCH = ACFG_SQL_QRY_READ_ID_MAP_SYNC;
@@ -183,9 +189,9 @@ bool Db::readIdMapping(const int * sync_int, const QString * cam1_img, const QSt
         return false;
     }
     while (req.next()) {
-        *sync_id = req.value(0);
-        *cam1_img= req.value(1);
-        *cam2_img= req.value(2);
+        *sync_int = req.value(0).toInt();
+        *cam1_img = req.value(1).toString();
+        *cam2_img = req.value(2).toString();
     }
     return true;
 }
@@ -237,7 +243,6 @@ bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
     tmWhen = req.value(1).toString();
     tmSeen = req.value(2).toString();
     return true;
-7
 }
 
 
