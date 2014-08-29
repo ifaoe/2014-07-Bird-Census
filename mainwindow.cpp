@@ -459,6 +459,7 @@ void MainWindow::imgUpdateSelection(QItemSelection selected,
                   "\n konnte nicht geoeffnet werden!","OK");
                   return;
               }
+              this->setWindowTitle(config->appTitle()+" - "+config->appVersion()+" - Kamera "+ selCam +" - "+selFile);
               ovrCanvas->doSelectFirstTile();
               ui->lblCurCam->setText(selCam);
               ui->lblCurImage->setText(selFile);
