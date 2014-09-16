@@ -303,9 +303,10 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
 
     qgsImgEnvelope = new QgsVectorLayer(props, "ENVELOPE", "memory");
     qgsImgEnvelope->dataProvider()->addAttributes(fields);
-    //QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
     QgsGeometry* qgsImgEnvGeom = validPolyGeometry(db, strCam, strFile);
-    if (!qgsImgEnvGeom) return false;
+    if (!qgsImgEnvGeom) {
+    	QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
+    }
     QgsFeature fet = QgsFeature(qgsImgEnvelope->dataProvider()->fields());
     fet.setGeometry( qgsImgEnvGeom );
     bool done = true;

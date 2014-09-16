@@ -3,7 +3,7 @@
 
 #include <qgsgeometry.h>
 #include <QString>
-#include <db.h>
+#include "db.h"
 
 // berechnet die entgültige Geometry des Bildes
 QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image);
