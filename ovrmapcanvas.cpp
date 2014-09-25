@@ -35,9 +35,10 @@ void OvrMapCanvas::doSelectFirstTile() {
 }
 // ----------------------------------------------------------------------
 void OvrMapCanvas::doSelectNextTile() {
-    curTile++;
-    if (curTile>tileFeatureIds.size()) curTile = 1;
-    doSelectTile(curTile);
+    if (curTile<tileFeatureIds.size()) {
+    	curTile++;
+    	doSelectTile(curTile);
+    }
 }
 // ----------------------------------------------------------------------
 void OvrMapCanvas::doSelectPrevTile() {
