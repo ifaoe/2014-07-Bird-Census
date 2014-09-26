@@ -1,6 +1,8 @@
 #ifndef OVRMAPCANVAS_H
 #define OVRMAPCANVAS_H
 
+#include <QMessageBox>
+#include <QPushButton>
 #include <qgsmapcanvas.h>
 #include <qgsmaplayer.h>
 #include <qgsmaplayerregistry.h>

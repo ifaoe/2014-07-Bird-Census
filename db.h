@@ -4,7 +4,7 @@
 #include <libconfig.h++>
 #include <appconfig.h>
 #include <QPlainTextEdit>
-#include <QTableView>
+#include <QTableWidget>
 #include <QString>
 #include <QStringList>
 #include <QSqlError>
@@ -76,6 +76,10 @@ public:
                       const QString user,
                               int &fCnt);
     bool deleteRawCensus(int id);
+
+    int readImageDone(const QString cam, const QString file);
+
+    bool writeImageDone(const int imgRdy, const int id);
 
     bool writeRawCensus(QStringListModel* model,
                         const QString type, const int epsg,

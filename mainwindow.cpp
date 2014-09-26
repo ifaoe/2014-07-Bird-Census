@@ -41,6 +41,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 
     sqlImgModel = db->getImages(ui->tbvImages, sqlImgModel);
     imgSelector = ui->tbvImages->selectionModel();
+    //checkRdyImages();
 
     vsSelector  = ui->tbvEdtVS->selectionModel();
     vfSelector  = ui->tbvEdtVF->selectionModel();
@@ -107,6 +108,25 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 
 
 }
+
+//void MainWindow::checkRdyImages() {
+//    int maxrow = ui->tbvImages->model()->rowCount();
+//    int imgRdy;
+//    for (int row=0; row<maxrow; row++) {
+//        QModelIndex c1index = ui->tbvImages->model()->index(row,3);
+//        QModelIndex c2index = ui->tbvImages->model()->index(row,4);
+//        imgRdy = db->readImageDone(QString::fromUtf8("1"), ui->tbvImages->model()->data(c1index).toString());
+//        imgRdy = 1;
+//        if (imgRdy == 1) {
+//            ui->tbvImages->model()->setData(c1index,"Done!");
+//        }
+//        imgRdy = db->readImageDone(QString::fromUtf8("2"), ui->tbvImages->model()->data(c2index).toString());
+//        if (imgRdy == 1) {
+//            ui->tbvImages->model()->setData(c2index,"Done!");
+//        }
+//    }
+//}
+
 // ------------------------------------------------------------------------
 void MainWindow::saveData() {
    mapCanvas->doSaveData(ui->lblCurCam->text(), ui->lblCurImage->text());

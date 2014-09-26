@@ -368,6 +368,37 @@ bool Db::deleteRawCensus(int id) {
 
 }
 
+int Db::readImageDone(const QString cam, const QString file) {
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_DONE);
+    QString resolv = q->query.arg(cam).arg(file);
+    out->log(resolv);
+    out->log(q->desc);
+    QSqlQuery req(db);
+    int rdy = 0;
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return rdy;
+    }
+    if (! req.next()) return rdy;
+    rdy = req.value(0).toInt();
+    return rdy;
+}
+
+// -------------------------------------------------------
+bool Db::writeImageDone(const int imgRdy, const int id) {
+  QString lstr;
+
+  lstr = "UPDATE raw_images SET rdy = %1 WHERE rimg_id = %2;";
+  lstr = lstr.arg(imgRdy).arg(id);
+
+  QSqlQuery write(db);
+  if (!write.exec(lstr)) {
+      out->error(write.lastError().text());
+      return false;
+  }
+  return true;
+}
+
 // -------------------------------------------------------
 QStringListModel* Db::readRawCensus(QStringListModel* model,
                       QgsVectorLayer*   layer,
