@@ -9,6 +9,7 @@
 #include <QStringList>
 #include <QSqlError>
 #include <QSqlQueryModel>
+#include <QWidgetItem>
 #include <QSqlDatabase>
 #include <QSqlRecord>
 #include <QSqlQuery>
@@ -66,8 +67,7 @@ public:
 
     void initConfig(TextLogger *aOut);
 
-    QSqlQueryModel* getImages(QTableView *result,
-                   QSqlQueryModel *model);
+    bool getImages(QTableWidget *result);
 
     QStringListModel* readRawCensus(QStringListModel *model,
                                    QgsVectorLayer *layer,
@@ -77,7 +77,7 @@ public:
                               int &fCnt);
     bool deleteRawCensus(int id);
 
-    int readImageDone(const QString cam, const QString file);
+    QSet<QString> * readImageDone(const QString cam);
 
     bool writeImageDone(const int imgRdy, const int id);
 

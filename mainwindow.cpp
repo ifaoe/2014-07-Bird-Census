@@ -39,7 +39,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
         edtViews[i]->setModel(new QStringListModel);
     }
 
-    sqlImgModel = db->getImages(ui->tbvImages, sqlImgModel);
+    db->getImages(ui->tbvImages);
     imgSelector = ui->tbvImages->selectionModel();
     //checkRdyImages();
 
@@ -108,24 +108,6 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 
 
 }
-
-//void MainWindow::checkRdyImages() {
-//    int maxrow = ui->tbvImages->model()->rowCount();
-//    int imgRdy;
-//    for (int row=0; row<maxrow; row++) {
-//        QModelIndex c1index = ui->tbvImages->model()->index(row,3);
-//        QModelIndex c2index = ui->tbvImages->model()->index(row,4);
-//        imgRdy = db->readImageDone(QString::fromUtf8("1"), ui->tbvImages->model()->data(c1index).toString());
-//        imgRdy = 1;
-//        if (imgRdy == 1) {
-//            ui->tbvImages->model()->setData(c1index,"Done!");
-//        }
-//        imgRdy = db->readImageDone(QString::fromUtf8("2"), ui->tbvImages->model()->data(c2index).toString());
-//        if (imgRdy == 1) {
-//            ui->tbvImages->model()->setData(c2index,"Done!");
-//        }
-//    }
-//}
 
 // ------------------------------------------------------------------------
 void MainWindow::saveData() {
@@ -434,7 +416,7 @@ void MainWindow::imgUpdateSelection(QItemSelection selected,
      if (selItems.size()<1 ) return;
      QModelIndex selIndex = selItems.at(0);
      QString selFile = QString(ui->tbvImages->model()->data(selIndex).toString());
-     QString selCam  = QString::number(selIndex.column()-2);
+     QString selCam  = QString::number(selIndex.column()-1);
      QString curFile = ui->lblCurImage->text();
      QString curCam  = ui->lblCurCam->text();
      bool isDefault  = (ui->lblCurImage->text().compare(TK_QSTR_NONE) == 0);

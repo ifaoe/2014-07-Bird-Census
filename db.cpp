@@ -317,6 +317,7 @@ bool Db::writeRawCensus(QStringListModel* model,
                       const QString user,
                       const QString session) {
     QStringList list = model->stringList();
+
     if (list.size()<1) return true;
     int cnt = 0;
     foreach (QString data, list) {
@@ -338,6 +339,7 @@ bool Db::writeRawCensus(QStringListModel* model,
                     "SET tp='%1', px=%2, py=%3, ux=%4, uy=%5, lx=%6,"
                     "ly=%7, epsg=%8, cam='%9', img='%10', usr='%11', session='%12' "
                     "WHERE rcns_id = %13;";
+
             lstr = lstr.arg(items.at(0)).arg(items.at(1))
                           .arg(items.at(2)).arg(items.at(3)).arg(items.at(4))
                           .arg(items.at(5)).arg(items.at(6)).arg(epsg)
@@ -368,26 +370,27 @@ bool Db::deleteRawCensus(int id) {
 
 }
 
-int Db::readImageDone(const QString cam, const QString file) {
+QSet<QString> * Db::readImageDone(const QString cam) {
+    QSet<QString> *imgrdy = new QSet<QString>;
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_DONE);
-    QString resolv = q->query.arg(cam).arg(file);
+    QString resolv = q->query.arg(cam);
     out->log(resolv);
     out->log(q->desc);
     QSqlQuery req(db);
-    int rdy = 0;
     if ( ! req.exec(resolv) ) {
         out->error(req.lastError().text());
-        return rdy;
+        return imgrdy;
     }
-    if (! req.next()) return rdy;
-    rdy = req.value(0).toInt();
-    return rdy;
+    while (req.next()) {
+        imgrdy->insert(QString(req.value(0).toString()));
+    }
+    return imgrdy;
 }
 
 // -------------------------------------------------------
 bool Db::writeImageDone(const int imgRdy, const int id) {
   QString lstr;
-
+QMap<QString, QString> *imgrdy = new QMap<QString, QString>;
   lstr = "UPDATE raw_images SET rdy = %1 WHERE rimg_id = %2;";
   lstr = lstr.arg(imgRdy).arg(id);
 
@@ -450,23 +453,46 @@ QStringListModel* Db::readRawCensus(QStringListModel* model,
 }
 
 // -------------------------------------------------------
-QSqlQueryModel* Db::getImages(QTableView* result , QSqlQueryModel *model){
+bool Db::getImages(QTableWidget *result){
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMAGES);
-    if (model) delete model;
-    model = new QSqlQueryModel;
+    QString resolv = q->query;
+    out->log(resolv);
     out->log(q->desc);
-    model->setQuery(q->query);
-    model->setHeaderData(0, Qt::Horizontal, "SID");
-    model->setHeaderData(1, Qt::Horizontal, "GID");
-    model->setHeaderData(2, Qt::Horizontal, "TID");
-    model->setHeaderData(3, Qt::Horizontal, "CAM1");
-    model->setHeaderData(4, Qt::Horizontal, "CAM2");
-    result->setModel(model);
-    result->resizeRowsToContents();
-    result->resizeColumnsToContents();
-    result->hideColumn(0);
-    return model;
-
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return false;
+    }
+    QSet<QString> *rdy_cam1 = readImageDone(QString::fromUtf8("1"));
+    QSet<QString> *rdy_cam2 = readImageDone(QString::fromUtf8("2"));
+    result->setRowCount(req.size());
+    result->setHorizontalHeaderLabels(QStringList() << "GID" << "TID" << "CAM1" << "CAM2");
+    result->setColumnWidth(0, 50);
+    result->setColumnWidth(1, 30);
+    result->setColumnWidth(2, 75);
+    result->setColumnWidth(3, 75);
+    while (req.next()) {
+        QTableWidgetItem *GID = new QTableWidgetItem(QString("%1").arg(req.value(1).toString()));
+        QTableWidgetItem *TID = new QTableWidgetItem(QString("%1").arg(req.value(2).toString()));
+        QTableWidgetItem *CAM1 = new QTableWidgetItem(QString("%1").arg(req.value(3).toString()));
+        QTableWidgetItem *CAM2 = new QTableWidgetItem(QString("%1").arg(req.value(4).toString()));
+        GID->setTextAlignment(Qt::AlignHCenter);
+        TID->setTextAlignment(Qt::AlignHCenter);
+        CAM1->setTextAlignment(Qt::AlignHCenter);
+        CAM2->setTextAlignment(Qt::AlignHCenter);
+        result->setItem(req.at(), 0, GID);
+        result->setItem(req.at(), 1, TID);
+        result->setItem(req.at(), 2, CAM1);
+        if ( rdy_cam1->contains( req.value(3).toString() )) {
+            result->item(req.at(), 2)->setBackgroundColor(Qt::green);
+        }
+        result->setItem(req.at(), 3, CAM2);
+        if ( rdy_cam2->contains( req.value(4).toString() )) {
+            result->item(req.at(), 3)->setBackgroundColor(Qt::green);
+        }
+    }
+    result->sortItems(0, Qt::AscendingOrder);
+    return true;
 }
 
 
