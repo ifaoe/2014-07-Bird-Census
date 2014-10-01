@@ -7,9 +7,9 @@ SessionSelector::SessionSelector(QWidget *parent) :
 {
 	ui->setupUi(this);
 	QDir prjdir(PRJ_DIR_BIRD_CENSUS);
-	prjfiles = prjdir.entryInfoList();
+    prjfiles = prjdir.entryInfoList(QDir::NoDotAndDotDot|QDir::AllEntries);
 	for (int i=0; i < prjfiles.size(); i++) {
-		ui->cmbSession->insertItem(i, prjfiles.at(i).fileName());
+        ui->cmbSession->insertItem(i, prjfiles.at(i).fileName());
 	}
     //@TODO: Projektverzeichnis duchgehen und Projektkonfigurationen auslesen
 }

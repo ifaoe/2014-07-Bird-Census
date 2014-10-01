@@ -262,10 +262,10 @@ bool Db::writeRawImageTile(const bool insert, const int id,
            .arg(session).arg("").arg("").arg(x).arg(y).arg(w).arg(h);
   } else {
       lstr = "UPDATE raw_tiles SET "
-             "epsg = %1, cam = '%2', img = '%3', "
-             "usr = '%4', session = '%5', "
-             "tm_when = '%6', tm_seen = '%7', "
-             "ux = '%8', uy = '%9', w = '%10', h = '%11' "
+             "epsg = %1, cam = '%2' "
+             "usr = '%3', session = '%4', "
+             "tm_when = '%5', tm_seen = '%6', "
+             "ux = '%7', uy = '%8', w = '%9', h = '%10' "
              "WHERE rtls_id = %12;";
       lstr = lstr.arg(epsg).arg(cam).arg(file).arg(usr).arg(session)
              .arg(tmWhen).arg(tmSeen).arg(x).arg(y).arg(w).arg(h).arg(id);
@@ -408,10 +408,21 @@ QStringListModel* Db::readRawCensus(QStringListModel* model,
                       const QString cam,
                       const QString img,
                       const QString user, int &fCnt) {
-    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_RCENSUS);
-    if (model->rowCount()>0) model->removeRows(0,model->rowCount());
-    QString lyrName = layer->name();
-    QString resolv =  q->query.arg(lyrName).arg(cam).arg(img).arg(user);
+    QString resolv;
+    SqlQuery *q;
+    QString lyrName;
+    QStringList usrAdmins = config->getAdmins();
+    if (usrAdmins.contains(user)) {
+        q = config->getSqlQuery(ACFG_SQL_QRY_READ_RCENSUS_ADMIN);
+        if (model->rowCount()>0) model->removeRows(0,model->rowCount());
+        lyrName = layer->name();
+        resolv =  q->query.arg(lyrName).arg(cam).arg(img);
+    } else {
+        q = config->getSqlQuery(ACFG_SQL_QRY_READ_RCENSUS);
+        if (model->rowCount()>0) model->removeRows(0,model->rowCount());
+        lyrName = layer->name();
+        resolv =  q->query.arg(lyrName).arg(cam).arg(img).arg(user);
+    }
     out->log(resolv);
     out->log(q->desc);
     QSqlQuery req(db);
@@ -471,11 +482,13 @@ bool Db::getImages(QTableWidget *result){
     result->setColumnWidth(1, 30);
     result->setColumnWidth(2, 75);
     result->setColumnWidth(3, 75);
+    result->hideColumn(4);
     while (req.next()) {
         QTableWidgetItem *GID = new QTableWidgetItem(QString("%1").arg(req.value(1).toString()));
         QTableWidgetItem *TID = new QTableWidgetItem(QString("%1").arg(req.value(2).toString()));
         QTableWidgetItem *CAM1 = new QTableWidgetItem(QString("%1").arg(req.value(3).toString()));
         QTableWidgetItem *CAM2 = new QTableWidgetItem(QString("%1").arg(req.value(4).toString()));
+        QTableWidgetItem *SID = new QTableWidgetItem(QString("%1").arg(req.value(0).toString()));
         GID->setTextAlignment(Qt::AlignHCenter);
         TID->setTextAlignment(Qt::AlignHCenter);
         CAM1->setTextAlignment(Qt::AlignHCenter);
@@ -490,8 +503,9 @@ bool Db::getImages(QTableWidget *result){
         if ( rdy_cam2->contains( req.value(4).toString() )) {
             result->item(req.at(), 3)->setBackgroundColor(Qt::green);
         }
+        result->setItem(req.at(), 4, SID);
     }
-    result->sortItems(0, Qt::AscendingOrder);
+
     return true;
 }
 

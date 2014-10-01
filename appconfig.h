@@ -30,6 +30,7 @@ const QString ACFG_SQL_QRY_READ_IMAGES      = "readImages";
 const QString ACFG_SQL_QRY_READ_RIMAGE      = "readRawImage";
 const QString ACFG_SQL_QRY_READ_RIMAGE_TILE = "readRawImageTile";
 const QString ACFG_SQL_QRY_READ_RCENSUS     = "readRawCensus";
+const QString ACFG_SQL_QRY_READ_RCENSUS_ADMIN     = "readRawCensusAdmin";
 const QString ACFG_SQL_QRY_DEL_RCENSUS      = "deleteRawCensus";
 const QString ACFG_SQL_QRY_READ_IMGENV      = "readImgEnvelope";
 const QString ACFG_SQL_QRY_READ_FDATA       = "readImgFlightData";
@@ -111,6 +112,8 @@ public:
 
     SqlQuery* getSqlQuery(QString key) const;
 
+    QStringList getAdmins() const;
+
 private:
     const Defs *defaultSettings;
     Config    cfg;
@@ -120,6 +123,7 @@ private:
     QString   qsAppVersion = TK_QSTR_NONE;
     QString   qsAppAuthor  = TK_QSTR_NONE;
     QString   qsAppCopy    = TK_QSTR_NONE;
+    QStringList usrAdmins;
 
     // -----------------------------------------------------
     QString   qsQgsPrefixPath = "/usr";

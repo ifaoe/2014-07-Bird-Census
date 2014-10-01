@@ -33,7 +33,10 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
                 "Kontaktdaten Programmauthor, in der Regel die E-Mail" , true);
     readQString(cfgRoot, "copyright",  qsAppCopy, "**NOBODY**",
                 "Kopierrechte" , true);
-    readQuint8(cfgRoot, "utmSector",     qui8PrjUtmSector, 0, "UTM-Sektor", true);
+
+    QString tmpAdmins;
+    readQString(cfgRoot, "admins", tmpAdmins, "", "Administatoren", true);
+    usrAdmins = tmpAdmins.split(",");
 
     // Einlesen der GUI Parameter
     const Setting& gui = readGroup(cfgRoot, "gui",
@@ -97,6 +100,7 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
              "Aktuelle Session die gelesen werden soll",
              true);
 
+    readQuint8(project, "utmSector",     qui8PrjUtmSector, 0, "UTM-Sektor", true);
 
     readQueries(prjRoot);
 }
@@ -259,5 +263,8 @@ SqlQuery* AppConfig::getSqlQuery(QString key) const {
     return (sqlQueries.value(key));
 }
 
+QStringList AppConfig::getAdmins() const {
+    return usrAdmins;
+}
 
 
