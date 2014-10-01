@@ -33,6 +33,7 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
                 "Kontaktdaten Programmauthor, in der Regel die E-Mail" , true);
     readQString(cfgRoot, "copyright",  qsAppCopy, "**NOBODY**",
                 "Kopierrechte" , true);
+    readQuint8(cfgRoot, "utmSector",     qui8PrjUtmSector, 0, "UTM-Sektor", true);
 
     // Einlesen der GUI Parameter
     const Setting& gui = readGroup(cfgRoot, "gui",
@@ -54,18 +55,6 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
              "Pfadprefix fuer die Qgis-Installation LINUX /usr oder /usr/local",
              true);
 
-    const Setting& project = readGroup(cfgRoot, "project", "Pfad zu den Projektdaten");
-
-    readQString(project,"path",  qsPrjPath, "/usr/local/ifaoe/daisi/prj",
-             "Pfadprefix fuer die Qgis-Installation LINUX /usr oder /usr/local",
-             true);
-
-    readQString(project,"session",  qsPrjSession, TK_QSTR_NONE,
-             "Aktuelle Session die gelesen werden soll",
-             true);
-
-    readQuint8(project, "utmSector",     qui8PrjUtmSector, 0, "UTM-Sektor", true);
-
     const Setting& image = readGroup(cfgRoot, "image", "Bildeinstellungen");
     readQuint8(image, "bandRed",     qui8ImgBandRed, 1, "Index roter Kanal", true);
     readQuint8(image, "bandBlue",    qui8ImgBandBlue, 2, "Index blauer Kanal", true);
@@ -80,10 +69,36 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     readQuint16(image, "tileHeight",  qui16ImgTileHeight, 800, "Hoehe der Image Tiles", true);
 
 
-   
-    // Einlesen der Grundparameter
-    readQueries(cfgRoot);
+    // Einlesen der Projektparameter
+    // Session Selector starten
+    SessionSelector dialog;
+    dialog.exec();
 
+    QFileInfo prjFile = dialog.getSession();
+
+    try {
+        prj.readFile( prjFile.filePath().toStdString().c_str() );
+    } catch(const FileIOException &fioex)  {
+        qFatal("Fehler in Konfiguration %s!", prjFile.filePath().toStdString().c_str() );
+    } catch(const ParseException &pex) {
+        qFatal("Fehler in Konfiguration %s in Zeile %d\n Details: %s! ",
+            pex.getFile(), pex.getLine(), pex.getError());
+    }
+
+    const Setting& prjRoot = prj.getRoot();
+
+    const Setting& project = readGroup(prjRoot, "project", "Pfad zu den Projektdaten");
+
+    readQString(project,"path",  qsPrjPath, "/usr/local/ifaoe/daisi/prj",
+             "Pfadprefix fuer die Qgis-Installation LINUX /usr oder /usr/local",
+             true);
+
+    readQString(project,"session",  qsPrjSession, TK_QSTR_NONE,
+             "Aktuelle Session die gelesen werden soll",
+             true);
+
+
+    readQueries(prjRoot);
 }
 
 // -------------------------------------------------------------------------

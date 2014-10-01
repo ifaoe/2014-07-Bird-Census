@@ -11,6 +11,7 @@
 #include <libconfig.h++>
 #include "defs.h"
 #include "sqlquery.h"
+#include "sessionselector.h"
 
 using namespace libconfig;
 
@@ -113,6 +114,7 @@ public:
 private:
     const Defs *defaultSettings;
     Config    cfg;
+    Config    prj;
     // -----------------------------------------------------
     QString   qsAppTitle   = TK_QSTR_NONE;
     QString   qsAppVersion = TK_QSTR_NONE;

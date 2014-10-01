@@ -5,7 +5,7 @@
 MainWindow::MainWindow(const AppConfig *aConfig)
     : QMainWindow(0), config(aConfig), ui(new Ui::MainWindow)
 {
-
+	qDebug() << "Main Window Construct";
     // Aufsetzen der GUI Grundumgebung + Logger
     ui->setupUi(this);
     this->resize(QSize(config->guiWinWidth(),config->guiWinHeight()));
@@ -41,7 +41,6 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 
     db->getImages(ui->tbvImages);
     imgSelector = ui->tbvImages->selectionModel();
-    //checkRdyImages();
 
     vsSelector  = ui->tbvEdtVS->selectionModel();
     vfSelector  = ui->tbvEdtVF->selectionModel();
