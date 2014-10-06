@@ -266,8 +266,8 @@ bool Db::writeRawImageTile(const bool insert, const int id,
              "usr = '%3', session = '%4', "
              "tm_when = '%5', tm_seen = '%6', "
              "ux = '%7', uy = '%8', w = '%9', h = '%10' "
-             "WHERE rtls_id = %12;";
-      lstr = lstr.arg(epsg).arg(cam).arg(file).arg(usr).arg(session)
+             "WHERE rtls_id = %11;";
+      lstr = lstr.arg(epsg).arg(cam).arg(usr).arg(session)
              .arg(tmWhen).arg(tmSeen).arg(x).arg(y).arg(w).arg(h).arg(id);
   }
 
