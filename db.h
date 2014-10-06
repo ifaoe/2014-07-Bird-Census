@@ -4,11 +4,12 @@
 #include <libconfig.h++>
 #include <appconfig.h>
 #include <QPlainTextEdit>
-#include <QTableView>
+#include <QTableWidget>
 #include <QString>
 #include <QStringList>
 #include <QSqlError>
 #include <QSqlQueryModel>
+#include <QWidgetItem>
 #include <QSqlDatabase>
 #include <QSqlRecord>
 #include <QSqlQuery>
@@ -21,6 +22,9 @@
 #include <qgsfeature.h>
 #include "textlogger.h"
 #include "sqlquery.h"
+#include <ctime>
+
+typedef struct std::tm time_struct;
 
 const char DB_ERR_CFG_DRIVER[] =
               "Fehlerhafter Datenbanktreiber %s + %s in Gruppe %s!\n"
@@ -63,8 +67,7 @@ public:
 
     void initConfig(TextLogger *aOut);
 
-    QSqlQueryModel* getImages(QTableView *result,
-                   QSqlQueryModel *model);
+    bool getImages(QTableWidget *result);
 
     QStringListModel* readRawCensus(QStringListModel *model,
                                    QgsVectorLayer *layer,
@@ -73,6 +76,10 @@ public:
                       const QString user,
                               int &fCnt);
     bool deleteRawCensus(int id);
+
+    QSet<QString> * readImageDone(const QString cam);
+
+    bool writeImageDone(const int imgRdy, const int id);
 
     bool writeRawCensus(QStringListModel* model,
                         const QString type, const int epsg,
@@ -103,7 +110,10 @@ public:
                           QString &tmWhen, QString &tmSeen);
 
     QgsGeometry* readImageEnvelope(const QString cam, const QString image);
+    
+    bool readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img);
 
+    double getSolarAzimuth(const QString cam, const QString image);
 
 private:
     const AppConfig *config;

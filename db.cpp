@@ -1,4 +1,7 @@
 #include "db.h"
+#include <iostream>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include "spa/spa.h"
 
 Db::Db(const AppConfig *aConfig, char *key, char *help) :
     config(aConfig), sectionKey(key), sectionHelp(help)
@@ -82,7 +85,6 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
     QString resolv =  q->query.arg(cam).arg(image);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-
         out->error(req.lastError().text());
         return 0;
     }
@@ -98,6 +100,100 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
     }
     return geom;
 
+}
+
+// -------------------------------------------------------
+// Many apriori assumptions for athmospheric data
+// precision good enough for now
+double Db::getSolarAzimuth(const QString cam, const QString image) {
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_FDATA);
+    QString resolv = q->query.arg(cam).arg(image);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return 0.0;
+    }
+    spa_data sdata;
+    QString date, time;
+    double cog;
+    while(req.next()) {
+            sdata.longitude  = req.value(0).toDouble();
+            sdata.latitude   = req.value(1).toDouble();
+            cog =req.value(2).toDouble();
+            date = req.value(3).toString();
+            time = req.value(4).toString();
+    }
+    time_struct tdata;
+    tdata = boost::posix_time::to_tm( 
+                boost::posix_time::time_from_string(date.toStdString() + " " + time.toStdString()));
+
+    sdata.year     = tdata.tm_year + 1900;
+    sdata.month    = tdata.tm_mon + 1;
+    sdata.day      = tdata.tm_mday;
+    sdata.hour     = tdata.tm_hour;
+    sdata.minute   = tdata.tm_min;
+    sdata.second   = tdata.tm_sec;
+        
+    // bulletin: http://maia.usno.navy.mil/ser7/ser7.dat,
+    // where delta_t = 32.184 + (TAI-UTC) + DUT1
+    // TODO: get data from server
+    sdata.delta_t  = 32.184 + 35. - 0.3;
+        
+    // elevation: water level
+    sdata.elevation= 0.;
+        
+    // manual time zone
+    // TODO: get timezone from meta data
+    sdata.timezone = 2;
+        
+    // weather data
+    // TODO: Get weatherdata from crawler
+    sdata.pressure         = 1200;
+    sdata.temperature      = 15;
+    sdata.slope            = 0;
+    sdata.azm_rotation     = 0;
+        
+    sdata.atmos_refract    = 0.5667;
+    sdata.function         = SPA_ZA;
+    spa_calculate( &sdata );
+    
+    double solar_dir = fmod(sdata.azimuth - cog, 360.0);
+    if (solar_dir < 0) {
+            return solar_dir + 360.0;
+    } else {
+            return solar_dir;
+    }
+}
+
+// --------------------------------------------------------
+bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
+    QString arg_name, arg_value, sync_id;
+    sync_id = QString::number(*sync_int);
+    if ( *sync_int == 0 ) {
+        if ( cam1_img->isEmpty() ) {
+            arg_name  = "cam2_id";
+            arg_value = *cam2_img;
+        } else {
+            arg_name  = "cam1_id";
+            arg_value = *cam1_img;
+        }
+    } else {
+        arg_name  = "sync_id";
+        arg_value = sync_id;
+    }
+    SqlQuery *q = config->getSqlQuery( ACFG_SQL_QRY_READ_ID_MAP );
+    QString resolv =q->query.arg(arg_name).arg(arg_value);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return false;
+    }
+    while (req.next()) {
+        *sync_int = req.value(0).toInt();
+        *cam1_img = req.value(1).toString();
+        *cam2_img = req.value(2).toString();
+    }
+    return true;
 }
 
 // -------------------------------------------------------
@@ -133,7 +229,7 @@ bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
                       const QString usr, const QString session,
                       int &id, QString &tmWhen, QString &tmSeen) {
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_RIMAGE);
-    QString resolv =  q->query.arg(cam).arg(file).arg(usr);
+    QString resolv = q->query.arg(cam).arg(file).arg(usr);
     out->log(resolv);
     out->log(q->desc);
     QSqlQuery req(db);
@@ -147,7 +243,6 @@ bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
     tmWhen = req.value(1).toString();
     tmSeen = req.value(2).toString();
     return true;
-
 }
 
 
@@ -167,10 +262,10 @@ bool Db::writeRawImageTile(const bool insert, const int id,
            .arg(session).arg("").arg("").arg(x).arg(y).arg(w).arg(h);
   } else {
       lstr = "UPDATE raw_tiles SET "
-             "epsg = %1, cam = '%2', img = '%3', "
-             "usr = '%4', session = '%5', "
-             "tm_when = '%6', tm_seen = '%7', "
-             "ux = '%8', uy = '%9', w = '%10', h = '%11' "
+             "epsg = %1, cam = '%2' "
+             "usr = '%3', session = '%4', "
+             "tm_when = '%5', tm_seen = '%6', "
+             "ux = '%7', uy = '%8', w = '%9', h = '%10' "
              "WHERE rtls_id = %12;";
       lstr = lstr.arg(epsg).arg(cam).arg(file).arg(usr).arg(session)
              .arg(tmWhen).arg(tmSeen).arg(x).arg(y).arg(w).arg(h).arg(id);
@@ -222,6 +317,7 @@ bool Db::writeRawCensus(QStringListModel* model,
                       const QString user,
                       const QString session) {
     QStringList list = model->stringList();
+
     if (list.size()<1) return true;
     int cnt = 0;
     foreach (QString data, list) {
@@ -243,6 +339,7 @@ bool Db::writeRawCensus(QStringListModel* model,
                     "SET tp='%1', px=%2, py=%3, ux=%4, uy=%5, lx=%6,"
                     "ly=%7, epsg=%8, cam='%9', img='%10', usr='%11', session='%12' "
                     "WHERE rcns_id = %13;";
+
             lstr = lstr.arg(items.at(0)).arg(items.at(1))
                           .arg(items.at(2)).arg(items.at(3)).arg(items.at(4))
                           .arg(items.at(5)).arg(items.at(6)).arg(epsg)
@@ -273,6 +370,37 @@ bool Db::deleteRawCensus(int id) {
 
 }
 
+QSet<QString> * Db::readImageDone(const QString cam) {
+    QSet<QString> *imgrdy = new QSet<QString>;
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_DONE);
+    QString resolv = q->query.arg(cam);
+    out->log(resolv);
+    out->log(q->desc);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return imgrdy;
+    }
+    while (req.next()) {
+        imgrdy->insert(QString(req.value(0).toString()));
+    }
+    return imgrdy;
+}
+
+// -------------------------------------------------------
+bool Db::writeImageDone(const int imgRdy, const int id) {
+  QString lstr;
+QMap<QString, QString> *imgrdy = new QMap<QString, QString>;
+  lstr = "UPDATE raw_images SET rdy = %1 WHERE rimg_id = %2;";
+  lstr = lstr.arg(imgRdy).arg(id);
+
+  QSqlQuery write(db);
+  if (!write.exec(lstr)) {
+      out->error(write.lastError().text());
+      return false;
+  }
+  return true;
+}
 
 // -------------------------------------------------------
 QStringListModel* Db::readRawCensus(QStringListModel* model,
@@ -280,10 +408,21 @@ QStringListModel* Db::readRawCensus(QStringListModel* model,
                       const QString cam,
                       const QString img,
                       const QString user, int &fCnt) {
-    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_RCENSUS);
-    if (model->rowCount()>0) model->removeRows(0,model->rowCount());
-    QString lyrName = layer->name();
-    QString resolv =  q->query.arg(lyrName).arg(cam).arg(img).arg(user);
+    QString resolv;
+    SqlQuery *q;
+    QString lyrName;
+    QStringList usrAdmins = config->getAdmins();
+    if (usrAdmins.contains(user)) {
+        q = config->getSqlQuery(ACFG_SQL_QRY_READ_RCENSUS_ADMIN);
+        if (model->rowCount()>0) model->removeRows(0,model->rowCount());
+        lyrName = layer->name();
+        resolv =  q->query.arg(lyrName).arg(cam).arg(img);
+    } else {
+        q = config->getSqlQuery(ACFG_SQL_QRY_READ_RCENSUS);
+        if (model->rowCount()>0) model->removeRows(0,model->rowCount());
+        lyrName = layer->name();
+        resolv =  q->query.arg(lyrName).arg(cam).arg(img).arg(user);
+    }
     out->log(resolv);
     out->log(q->desc);
     QSqlQuery req(db);
@@ -325,23 +464,49 @@ QStringListModel* Db::readRawCensus(QStringListModel* model,
 }
 
 // -------------------------------------------------------
-QSqlQueryModel* Db::getImages(QTableView* result , QSqlQueryModel *model){
+bool Db::getImages(QTableWidget *result){
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMAGES);
-    if (model) delete model;
-    model = new QSqlQueryModel;
+    QString resolv = q->query;
+    out->log(resolv);
     out->log(q->desc);
-    model->setQuery(q->query);
-    model->setHeaderData(0, Qt::Horizontal, "SID");
-    model->setHeaderData(1, Qt::Horizontal, "GID");
-    model->setHeaderData(2, Qt::Horizontal, "TID");
-    model->setHeaderData(3, Qt::Horizontal, "CAM1");
-    model->setHeaderData(4, Qt::Horizontal, "CAM2");
-    result->setModel(model);
-    result->resizeRowsToContents();
-    result->resizeColumnsToContents();
-    result->hideColumn(0);
-    return model;
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+        out->error(req.lastError().text());
+        return false;
+    }
+    QSet<QString> *rdy_cam1 = readImageDone(QString::fromUtf8("1"));
+    QSet<QString> *rdy_cam2 = readImageDone(QString::fromUtf8("2"));
+    result->setRowCount(req.size());
+    result->setHorizontalHeaderLabels(QStringList() << "GID" << "TID" << "CAM1" << "CAM2");
+    result->setColumnWidth(0, 50);
+    result->setColumnWidth(1, 30);
+    result->setColumnWidth(2, 75);
+    result->setColumnWidth(3, 75);
+    result->hideColumn(4);
+    while (req.next()) {
+        QTableWidgetItem *GID = new QTableWidgetItem(QString("%1").arg(req.value(1).toString()));
+        QTableWidgetItem *TID = new QTableWidgetItem(QString("%1").arg(req.value(2).toString()));
+        QTableWidgetItem *CAM1 = new QTableWidgetItem(QString("%1").arg(req.value(3).toString()));
+        QTableWidgetItem *CAM2 = new QTableWidgetItem(QString("%1").arg(req.value(4).toString()));
+        QTableWidgetItem *SID = new QTableWidgetItem(QString("%1").arg(req.value(0).toString()));
+        GID->setTextAlignment(Qt::AlignHCenter);
+        TID->setTextAlignment(Qt::AlignHCenter);
+        CAM1->setTextAlignment(Qt::AlignHCenter);
+        CAM2->setTextAlignment(Qt::AlignHCenter);
+        result->setItem(req.at(), 0, GID);
+        result->setItem(req.at(), 1, TID);
+        result->setItem(req.at(), 2, CAM1);
+        if ( rdy_cam1->contains( req.value(3).toString() )) {
+            result->item(req.at(), 2)->setBackgroundColor(Qt::green);
+        }
+        result->setItem(req.at(), 3, CAM2);
+        if ( rdy_cam2->contains( req.value(4).toString() )) {
+            result->item(req.at(), 3)->setBackgroundColor(Qt::green);
+        }
+        result->setItem(req.at(), 4, SID);
+    }
 
+    return true;
 }
 
 

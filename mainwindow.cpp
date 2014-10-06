@@ -5,7 +5,7 @@
 MainWindow::MainWindow(const AppConfig *aConfig)
     : QMainWindow(0), config(aConfig), ui(new Ui::MainWindow)
 {
-
+	qDebug() << "Main Window Construct";
     // Aufsetzen der GUI Grundumgebung + Logger
     ui->setupUi(this);
     this->resize(QSize(config->guiWinWidth(),config->guiWinHeight()));
@@ -39,7 +39,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
         edtViews[i]->setModel(new QStringListModel);
     }
 
-    sqlImgModel = db->getImages(ui->tbvImages, sqlImgModel);
+    db->getImages(ui->tbvImages);
     imgSelector = ui->tbvImages->selectionModel();
 
     vsSelector  = ui->tbvEdtVS->selectionModel();
@@ -107,6 +107,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 
 
 }
+
 // ------------------------------------------------------------------------
 void MainWindow::saveData() {
    mapCanvas->doSaveData(ui->lblCurCam->text(), ui->lblCurImage->text());
@@ -414,7 +415,7 @@ void MainWindow::imgUpdateSelection(QItemSelection selected,
      if (selItems.size()<1 ) return;
      QModelIndex selIndex = selItems.at(0);
      QString selFile = QString(ui->tbvImages->model()->data(selIndex).toString());
-     QString selCam  = QString::number(selIndex.column()-2);
+     QString selCam  = QString::number(selIndex.column()-1);
      QString curFile = ui->lblCurImage->text();
      QString curCam  = ui->lblCurCam->text();
      bool isDefault  = (ui->lblCurImage->text().compare(TK_QSTR_NONE) == 0);
@@ -459,6 +460,7 @@ void MainWindow::imgUpdateSelection(QItemSelection selected,
                   "\n konnte nicht geoeffnet werden!","OK");
                   return;
               }
+              this->setWindowTitle(config->appTitle()+" - "+config->appVersion()+" - Kamera "+ selCam +" - "+selFile);
               ovrCanvas->doSelectFirstTile();
               ui->lblCurCam->setText(selCam);
               ui->lblCurImage->setText(selFile);

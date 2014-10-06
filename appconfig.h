@@ -11,6 +11,7 @@
 #include <libconfig.h++>
 #include "defs.h"
 #include "sqlquery.h"
+#include "sessionselector.h"
 
 using namespace libconfig;
 
@@ -29,8 +30,12 @@ const QString ACFG_SQL_QRY_READ_IMAGES      = "readImages";
 const QString ACFG_SQL_QRY_READ_RIMAGE      = "readRawImage";
 const QString ACFG_SQL_QRY_READ_RIMAGE_TILE = "readRawImageTile";
 const QString ACFG_SQL_QRY_READ_RCENSUS     = "readRawCensus";
+const QString ACFG_SQL_QRY_READ_RCENSUS_ADMIN     = "readRawCensusAdmin";
 const QString ACFG_SQL_QRY_DEL_RCENSUS      = "deleteRawCensus";
 const QString ACFG_SQL_QRY_READ_IMGENV      = "readImgEnvelope";
+const QString ACFG_SQL_QRY_READ_FDATA       = "readImgFlightData";
+const QString ACFG_SQL_QRY_READ_ID_MAP      = "readIdMapping";
+const QString ACFG_SQL_QRY_READ_DONE        = "readImageDone";
 
 const char ACFG_ERR_DOUBLE_KEY[] =
       "Zweideutiger Schluessel %s in Gruppe %s!\n"
@@ -107,14 +112,18 @@ public:
 
     SqlQuery* getSqlQuery(QString key) const;
 
+    QStringList getAdmins() const;
+
 private:
     const Defs *defaultSettings;
     Config    cfg;
+    Config    prj;
     // -----------------------------------------------------
     QString   qsAppTitle   = TK_QSTR_NONE;
     QString   qsAppVersion = TK_QSTR_NONE;
     QString   qsAppAuthor  = TK_QSTR_NONE;
     QString   qsAppCopy    = TK_QSTR_NONE;
+    QStringList usrAdmins;
 
     // -----------------------------------------------------
     QString   qsQgsPrefixPath = "/usr";

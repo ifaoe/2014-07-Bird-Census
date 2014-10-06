@@ -1,6 +1,6 @@
 #include "ovrmapcanvas.h"
 #include "cnsmapcanvas.h"
-
+#include "geometrycalc.h"
 // ----------------------------------------------------------------------
 OvrMapCanvas::OvrMapCanvas(QWidget *parent,
                            Ui::MainWindow* aUI,
@@ -35,15 +35,41 @@ void OvrMapCanvas::doSelectFirstTile() {
 }
 // ----------------------------------------------------------------------
 void OvrMapCanvas::doSelectNextTile() {
-    curTile++;
-    if (curTile>tileFeatureIds.size()) curTile = 1;
-    doSelectTile(curTile);
+    if (curTile<tileFeatureIds.size()) {
+    	curTile++;
+    	doSelectTile(curTile);
+    } else {
+        QMessageBox msgBox;
+        msgBox.setText("Das Ende des Bildes wurde erreicht.");
+        msgBox.setInformativeText(trUtf8("Soll das nächste Bild geladen werden? (Aktuelles Bild wird als fertig markiert!)"));
+        QAbstractButton *nextButton = msgBox.addButton(trUtf8("Ja"), QMessageBox::YesRole);
+        QAbstractButton *stayButton = msgBox.addButton(trUtf8("Nein"), QMessageBox::NoRole);
+        msgBox.exec();
+        if(msgBox.clickedButton() == nextButton) {
+            int rawImgID = -1;
+            QString rawImgTmWhen = "";
+            QString rawImgTmSeen = "";
+            db->readRawImage(config->prjUtmSector(),ui->lblCurCam->text(), ui->lblCurImage->text(),
+                             config->appUser(), config->prjSession(),
+                             rawImgID, rawImgTmWhen, rawImgTmSeen);
+            db->writeImageDone(1, rawImgID);
+            QModelIndexList curRows;
+            curRows = ui->tbvImages->selectionModel()->selectedIndexes();
+            QModelIndex newRow = curRows.first().model()->index(curRows.first().row()+1,curRows.first().column());
+            if (newRow.isValid()) {
+                ui->tbvImages->selectionModel()->select(newRow, QItemSelectionModel::ClearAndSelect);
+            }
+        } else if (msgBox.clickedButton() == stayButton) {
+
+        }
+    }
 }
 // ----------------------------------------------------------------------
 void OvrMapCanvas::doSelectPrevTile() {
-    curTile--;
-    if (curTile<1) curTile = tileFeatureIds.size();
-    doSelectTile(curTile);
+    if (curTile>1) {
+        curTile--;
+        doSelectTile(curTile);
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -303,8 +329,10 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
 
     qgsImgEnvelope = new QgsVectorLayer(props, "ENVELOPE", "memory");
     qgsImgEnvelope->dataProvider()->addAttributes(fields);
-    QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
-    if (!qgsImgEnvGeom) return false;
+    QgsGeometry* qgsImgEnvGeom = validPolyGeometry(db, strCam, strFile);
+    if (!qgsImgEnvGeom) {
+    	QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
+    }
     QgsFeature fet = QgsFeature(qgsImgEnvelope->dataProvider()->fields());
     fet.setGeometry( qgsImgEnvGeom );
     bool done = true;

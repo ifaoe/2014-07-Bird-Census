@@ -1,4 +1,7 @@
+build/
 .cproject
 .project
-.settings
-build/
+*.o
+.settings/
+nbproject/
+cscope.out

@@ -67,6 +67,7 @@ private:
 signals:
 
 public slots:
+//    void checkRdyImages();
     void saveData();
     void clearSelection();
     void deleteSelection();

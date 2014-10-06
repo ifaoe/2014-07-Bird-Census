@@ -195,6 +195,7 @@ private:
     QgsVectorLayer* qgsSnLayer = 0 ;
     QgsVectorLayer* qgsUfoLayer = 0 ;
     QgsVectorLayer* qgsWvLayer = 0 ;
+    QgsVectorLayer* qgsPolyLayer = 0;
     QgsRasterLayer* qgsImgLayer = 0 ;
     QgsRasterDataProvider* qgsImgProvider = 0;
 
@@ -220,6 +221,8 @@ private:
     bool openRasterLayer(const QString imagePath,
                          const QString strCam,
                          const QString strFile);
+
+    bool openPolyLayer(QString strCam, QString strFile);
 
     QgsVectorLayer* openEditLayer(const QString imagePath,
                        const QString strCam,

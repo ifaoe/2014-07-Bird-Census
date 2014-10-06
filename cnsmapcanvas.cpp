@@ -1,5 +1,7 @@
 #include "cnsmapcanvas.h"
 #include "ovrmapcanvas.h"
+#include "geometrycalc.h"
+#include <qgsgeometry.h>
 
 CnsMapCanvas::CnsMapCanvas(QWidget *parent,
                            Ui::MainWindow *aUI,
@@ -13,7 +15,6 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     out = new TextLogger(this, ui->txtLogger, ui->statusBar);
 
     // Initialize MapCanvas
-    useImageToRender(true);
     enableAntiAliasing(true);
     setCanvasColor(QColor(0, 0, 0));
     freeze(false);
@@ -323,6 +324,7 @@ bool CnsMapCanvas::doCalcWorldPos(const int pixX ,const int pixY,
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
     bool done = openRasterLayer(config->prjPath(), cam, file);
+    bool enod = openPolyLayer(cam, file);
     qgsVsLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_SWIM,
                                  qgsVsLayer);
     qgsVfLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_FLY,
@@ -341,14 +343,16 @@ bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
     qgsLyrRegistry->addMapLayer(qgsUfoLayer, false, true);
     qgsLyrRegistry->addMapLayer(qgsSnLayer, false, true);
     qgsLyrRegistry->addMapLayer(qgsWvLayer, false, true);
+    qgsLyrRegistry->addMapLayer(qgsPolyLayer, false, true);
     qgsLyrRegistry->addMapLayer(qgsImgLayer, false, true);
     qgsLyrRegistry->reloadAllLayers();
     refreshLayerPaintList();
-    return done;
+    return done && enod;
 }
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doSaveData() {
     doSaveData(ui->lblCurCam->text(),ui->lblCurImage->text());
+    return true;
 }
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doSaveData(QString cam, QString file) {
@@ -585,6 +589,7 @@ void CnsMapCanvas::refreshLayerPaintList() {
       if (qgsUfoLayer) list.append(QgsMapCanvasLayer(qgsUfoLayer));
       if (qgsSnLayer) list.append(QgsMapCanvasLayer(qgsSnLayer));
       if (qgsWvLayer) list.append(QgsMapCanvasLayer(qgsWvLayer));
+      if (qgsPolyLayer) list.append(QgsMapCanvasLayer(qgsPolyLayer));
       if (qgsImgLayer) list.append(QgsMapCanvasLayer(qgsImgLayer));
       this->setLayerSet(list);
 }
@@ -758,6 +763,44 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
     rawImgTm = QDateTime::currentDateTimeUtc();
     return true;
 
+}
+
+bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
+    if ( qgsPolyLayer ) {
+         QString id = qgsPolyLayer->id();
+         qgsLyrRegistry->removeMapLayer(id);
+         qgsPolyLayer = 0;
+    }
+    QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->prjUtmSector());
+    qgsPolyLayer = new QgsVectorLayer(uri, "Polygon Layer", "memory");
+
+    QgsGeometry *validPoly = validPolyGeometry(db, strCam, strFile);
+    QgsGeometry *imgEnv	= db->readImageEnvelope(strCam, strFile);
+    QgsGeometry *invPoly= imgEnv->difference(validPoly);
+
+    QgsFeature fet = QgsFeature( qgsPolyLayer->dataProvider()->fields() );
+    fet.setGeometry( invPoly );
+    qgsPolyLayer->startEditing();
+    qgsPolyLayer->addFeature(fet,true);
+    qgsPolyLayer->commitChanges();
+    bool done = false;
+    qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
+//    //@TODO WORK ARROUND
+//    QgsLabel* lab = qgsPolyLayer->label();
+//    QgsLabelAttributes* labAttr = lab->labelAttributes();
+//    lab->setLabelField(QgsLabel::Text, 1);
+//    labAttr->setColor(Qt::yellow);
+//    qgsPolyLayer->enableLabels(true);
+    qgsLyrRegistry->addMapLayer(qgsPolyLayer);
+
+    QgsRectangle rect = qgsPolyLayer->extent();
+    rect.setXMinimum(rect.xMinimum()-10);
+    rect.setYMinimum(rect.yMinimum()-10);
+    rect.setXMaximum(rect.xMaximum()+10);
+    rect.setYMaximum(rect.yMaximum()+10);
+    setExtent(rect);
+
+    return true;
 }
 
 #ifdef OPENCV
