@@ -3,6 +3,7 @@
 #include "geometrycalc.h"
 #include <qgsgeometry.h>
 
+
 CnsMapCanvas::CnsMapCanvas(QWidget *parent,
                            Ui::MainWindow *aUI,
                            const AppConfig *aConfig,
@@ -84,6 +85,39 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
 
     crs4326 = QgsCoordinateReferenceSystem(4326);
     setMapUnits(QGis::Meters);
+
+    mapLayerStack = new LayerStack(this, qgsLyrRegistry);
+
+//    buttonKeyMap[ui->rbVF] = KEY_BIRD_FLY;
+//    buttonKeyMap[ui->rbVS] = KEY_BIRD_SWIM;
+//    buttonKeyMap[ui->rbMM] = KEY_MAMMAL;
+//    buttonKeyMap[ui->rbUFO] = KEY_UFO;
+//    buttonKeyMap[ui->rbWV] = KEY_WAVE;
+//    buttonKeyMap[ui->rbSN] = KEY_SUN;
+//
+//    keyTbxMap[KEY_BIRD_SWIM] = 0;
+//    keyTbxMap[KEY_BIRD_FLY] = 1;
+//    keyTbxMap[KEY_MAMMAL] = 2;
+//    keyTbxMap[KEY_UFO] = 3;
+//    keyTbxMap[KEY_SUN] = 4;
+//    keyTbxMap[KEY_WAVE] = 5;
+    addEdtTbx(KEY_BIRD_SWIM, 0, qgsVsLayer, ui->rbVS, ui->tbvEdtVS);
+    addEdtTbx(KEY_BIRD_FLY, 1, qgsVfLayer, ui->rbVF, ui->tbvEdtVF);
+    addEdtTbx(KEY_MAMMAL, 2, qgsMmLayer, ui->rbMM, ui->tbvEdtMM);
+    addEdtTbx(KEY_UFO, 3, qgsUfoLayer, ui->rbUFO, ui->tbvEdtUFO);
+    addEdtTbx(KEY_SUN, 4, qgsSnLayer, ui->rbSN, ui->tbvEdtSN);
+    addEdtTbx(KEY_WAVE, 5, qgsWvLayer, ui->rbWV, ui->tbvEdtWV);
+
+
+}
+
+bool CnsMapCanvas::addEdtTbx(QString tbName, int tbIndex, QgsVectorLayer *tbLayer, QRadioButton *tbButton, QListView *tbListView) {
+	keyTbxMap[tbName] = tbIndex;
+	keyButtonMap[tbName] = tbButton;
+	buttonKeyMap[tbButton] = tbName;
+	keyListViewMap[tbName] = tbListView;
+	edtListViewMap[tbIndex] = tbListView;
+	return true;
 }
 
 // --------------------------------------------------------------------------
@@ -323,12 +357,10 @@ bool CnsMapCanvas::doCalcWorldPos(const int pixX ,const int pixY,
 
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
-    bool done = openRasterLayer(config->prjPath(), cam, file);
-    bool enod = openPolyLayer(cam, file);
-    qgsVsLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_SWIM,
-                                 qgsVsLayer);
     qgsVfLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_FLY,
                                  qgsVfLayer);
+    qgsVsLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_SWIM,
+                                 qgsVsLayer);
     qgsMmLayer = openEditLayer(config->prjPath(), cam, file, KEY_MAMMAL,
                                  qgsMmLayer);
     qgsUfoLayer = openEditLayer(config->prjPath(), cam, file, KEY_UFO,
@@ -337,16 +369,9 @@ bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
                                  qgsSnLayer);
     qgsWvLayer = openEditLayer(config->prjPath(), cam, file, KEY_WAVE,
                                  qgsWvLayer);
-    qgsLyrRegistry->addMapLayer(qgsVsLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsVfLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsMmLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsUfoLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsSnLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsWvLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsPolyLayer, false, true);
-    qgsLyrRegistry->addMapLayer(qgsImgLayer, false, true);
-    qgsLyrRegistry->reloadAllLayers();
-    refreshLayerPaintList();
+    bool enod = openPolyLayer(cam, file);
+    bool done = openRasterLayer(config->prjPath(), cam, file);
+
     return done && enod;
 }
 // --------------------------------------------------------------------------
@@ -399,41 +424,18 @@ bool CnsMapCanvas::saveData(const QString cam, const QString file) {
 }
 
 // --------------------------------------------------------------------------
-QgsVectorLayer* CnsMapCanvas::layerByKey(QString key) {
-    if ( key.compare(KEY_BIRD_SWIM) == 0  ) {
-        return qgsVsLayer;
-    } else if ( key.compare(KEY_BIRD_FLY) == 0  ) {
-        return qgsVfLayer;
-    } else if ( key.compare(KEY_MAMMAL) == 0  ) {
-        return qgsMmLayer;
-    } else if ( key.compare(KEY_UFO) == 0  ) {
-        return qgsUfoLayer;
-    } else if ( key.compare(KEY_SUN) == 0  ) {
-        return qgsSnLayer;
-    } else if ( key.compare(KEY_WAVE) == 0  ) {
-        return qgsWvLayer;
-    }
-    return 0;
+QgsMapLayer* CnsMapCanvas::layerByKey(QString key) {
+    return mapLayerStack->getMapLayer(key);
 }
 // --------------------------------------------------------------------------
 QgsVectorLayer* CnsMapCanvas::rbCheckedVectorLayer() {
-    if ( ui->rbVS->isChecked() ) {
-        return qgsVsLayer;
-    } else if ( ui->rbVF->isChecked() ) {
-        return qgsVfLayer;
-    } else if ( ui->rbMM->isChecked() ) {
-        return qgsMmLayer;
-    } else if ( ui->rbUFO->isChecked() ) {
-        return qgsUfoLayer;
-    } else if ( ui->rbWV->isChecked() ) {
-        return qgsWvLayer;
-    } else if ( ui->rbSN->isChecked() ) {
-        return qgsSnLayer;
-    }
-    return 0;
+	QRadioButton *checked = static_cast<QRadioButton*>(ui->btgLayers->checkedButton());
+	QString key = buttonKeyMap[checked];
+	return static_cast<QgsVectorLayer*>(mapLayerStack->getMapLayer(key));
 }
 // --------------------------------------------------------------------------
 QListView* CnsMapCanvas::rbCheckedListView() {
+	qDebug() << "Checked id: " << ui->btgLayers->checkedId();
     if ( ui->rbVS->isChecked() ) {
         return ui->tbvEdtVS;
     } else if ( ui->rbVF->isChecked() ) {
@@ -448,40 +450,15 @@ QListView* CnsMapCanvas::rbCheckedListView() {
         return ui->tbvEdtSN;
     }
     return 0;
+//	return edtListViewMap[ui->btgLayers->checkedId()];
 }
 // --------------------------------------------------------------------------
 QListView* CnsMapCanvas::keyListView(QString key) {
-    if ( key.compare(KEY_BIRD_SWIM) == 0) {
-        return ui->tbvEdtVS;
-    } else if ( key.compare(KEY_BIRD_FLY) == 0) {
-        return ui->tbvEdtVF;
-    } else if ( key.compare(KEY_MAMMAL) == 0 ) {
-        return ui->tbvEdtMM;
-    } else if ( key.compare(KEY_UFO) == 0 ) {
-        return ui->tbvEdtUFO;
-    } else if ( key.compare(KEY_SUN) == 0 ) {
-        return ui->tbvEdtSN;
-    } else if ( key.compare(KEY_WAVE) == 0 ) {
-        return ui->tbvEdtWV;
-    }
-    return 0;
+	return keyListViewMap[key];
 }
 // --------------------------------------------------------------------------
 int CnsMapCanvas::keyTbxLayer(QString key) {
-    if ( key.compare(KEY_BIRD_SWIM) == 0) {
-        return 0;
-    } else if ( key.compare(KEY_BIRD_FLY) == 0) {
-        return 1;
-    } else if ( key.compare(KEY_MAMMAL) == 0 ) {
-        return 2;
-    } else if ( key.compare(KEY_UFO) == 0 ) {
-        return 3;
-    } else if ( key.compare(KEY_SUN) == 0 ) {
-        return 4;
-    } else if ( key.compare(KEY_WAVE) == 0 ) {
-        return 5;
-    }
-    return -1;
+	return keyTbxMap[key];
 }
 // --------------------------------------------------------------------------
 int CnsMapCanvas::getMapMode() { return mapMode; }
@@ -580,20 +557,6 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
     doUpdateStatus();
 
 }
-// --------------------------------------------------------------------------
-void CnsMapCanvas::refreshLayerPaintList() {
-      QList<QgsMapCanvasLayer> list;
-      if (qgsVsLayer) list.append(QgsMapCanvasLayer(qgsVsLayer));
-      if (qgsVfLayer) list.append(QgsMapCanvasLayer(qgsVfLayer));
-      if (qgsMmLayer) list.append(QgsMapCanvasLayer(qgsMmLayer));
-      if (qgsUfoLayer) list.append(QgsMapCanvasLayer(qgsUfoLayer));
-      if (qgsSnLayer) list.append(QgsMapCanvasLayer(qgsSnLayer));
-      if (qgsWvLayer) list.append(QgsMapCanvasLayer(qgsWvLayer));
-      if (qgsPolyLayer) list.append(QgsMapCanvasLayer(qgsPolyLayer));
-      if (qgsImgLayer) list.append(QgsMapCanvasLayer(qgsImgLayer));
-      this->setLayerSet(list);
-}
-
 
 // --------------------------------------------------------------------------
 QgsVectorLayer *CnsMapCanvas::openEditLayer(
@@ -604,8 +567,7 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
                                    QgsVectorLayer *layer) {
     if ( layer ) {
          QString id = layer->id();
-         qgsLyrRegistry->removeMapLayer(id);
-         layer = 0; refreshLayerPaintList();
+         mapLayerStack->removeMapLayer(lyrKey);
     }
 
 
@@ -645,6 +607,7 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
     if (!done) {
         out->error("NO STYLE");
     }
+    mapLayerStack->addMapLayer(lyrKey, layer);
     return layer;
  }
 
@@ -654,9 +617,9 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
                                    const QString strFile) {
     if ( qgsImgLayer ) {
          QString id = qgsImgLayer->id();
-         qgsLyrRegistry->removeMapLayer(id);
+         mapLayerStack->removeMapLayer("raster");
          qgsImgLayer = 0;
-         refreshLayerPaintList();
+//         refreshLayerPaintList();
      }
 
 
@@ -761,6 +724,7 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
         if (! done ) return false;
     }
     rawImgTm = QDateTime::currentDateTimeUtc();
+    mapLayerStack->addMapLayer("raster",qgsImgLayer,1000);
     return true;
 
 }
@@ -768,7 +732,7 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
 bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     if ( qgsPolyLayer ) {
          QString id = qgsPolyLayer->id();
-         qgsLyrRegistry->removeMapLayer(id);
+         mapLayerStack->removeMapLayer("polygon");
          qgsPolyLayer = 0;
     }
     QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->prjUtmSector());
@@ -785,13 +749,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     qgsPolyLayer->commitChanges();
     bool done = false;
     qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
-//    //@TODO WORK ARROUND
-//    QgsLabel* lab = qgsPolyLayer->label();
-//    QgsLabelAttributes* labAttr = lab->labelAttributes();
-//    lab->setLabelField(QgsLabel::Text, 1);
-//    labAttr->setColor(Qt::yellow);
-//    qgsPolyLayer->enableLabels(true);
-    qgsLyrRegistry->addMapLayer(qgsPolyLayer);
+    mapLayerStack->addMapLayer("polygon",qgsVsLayer,2000);
 
     QgsRectangle rect = qgsPolyLayer->extent();
     rect.setXMinimum(rect.xMinimum()-10);

@@ -90,6 +90,7 @@ private:
     QSqlQueryModel* sqlImgModel = 0;
     void edtUpdateSelection(QListView* lst,
                             QItemSelection selected, QItemSelection deselected);
+    bool addEdtTbx(QString tbName, int tbIndex, QRadioButton * tbButton, QListView * tbListView);
 };
 
 #endif // MAINWINDOW_H

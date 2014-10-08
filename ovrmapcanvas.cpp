@@ -139,6 +139,7 @@ bool OvrMapCanvas:: readRawTile() {
         if (! done ) return false;
     }
     rawImgTileTm = QDateTime::currentDateTimeUtc();
+    return true;
 }
 
 // ----------------------------------------------------------------------
@@ -330,9 +331,6 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
     qgsImgEnvelope = new QgsVectorLayer(props, "ENVELOPE", "memory");
     qgsImgEnvelope->dataProvider()->addAttributes(fields);
     QgsGeometry* qgsImgEnvGeom = validPolyGeometry(db, strCam, strFile);
-    if (!qgsImgEnvGeom) {
-    	QgsGeometry* qgsImgEnvGeom = db->readImageEnvelope(strCam, strFile);
-    }
     QgsFeature fet = QgsFeature(qgsImgEnvelope->dataProvider()->fields());
     fet.setGeometry( qgsImgEnvGeom );
     bool done = true;

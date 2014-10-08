@@ -25,6 +25,13 @@ MainWindow::MainWindow(const AppConfig *aConfig)
     db->initConfig(logger);
     guiInitAdditionals();
 
+    addEdtTbx(KEY_BIRD_SWIM, 0, ui->rbVS, ui->tbvEdtVS);
+    addEdtTbx(KEY_BIRD_FLY, 1, ui->rbVF, ui->tbvEdtVF);
+    addEdtTbx(KEY_MAMMAL, 2, ui->rbMM, ui->tbvEdtMM);
+    addEdtTbx(KEY_UFO, 3, ui->rbUFO, ui->tbvEdtUFO);
+    addEdtTbx(KEY_SUN, 4, ui->rbSN, ui->tbvEdtSN);
+    addEdtTbx(KEY_WAVE, 5, ui->rbWV, ui->tbvEdtWV);
+
     edtKey[0] = KEY_BIRD_SWIM; edtKey[1] = KEY_BIRD_FLY; edtKey[2] = KEY_MAMMAL;
     edtKey[3] = KEY_UFO; edtKey[4] = KEY_SUN; edtKey[5] = KEY_WAVE;
 
@@ -106,6 +113,15 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 
 
 
+}
+
+bool MainWindow::addEdtTbx(QString tbName, int tbIndex, QRadioButton * tbButton, QListView * tbListView) {
+	edtKey[tbIndex] = tbName;
+	edtViews[tbIndex] = tbListView;
+	rbEdit[tbIndex] = tbButton;
+    edtViews[tbIndex]->setModel(new QStringListModel);
+    ui->btgLayers->setId(tbButton, tbIndex);
+	return true;
 }
 
 // ------------------------------------------------------------------------
@@ -221,7 +237,7 @@ void MainWindow::changeEdit(int index) {
 // ----------------------------------------------------------------------
 void MainWindow::deleteSelection() {
     if (edtCurKey.compare(TK_QSTR_NONE) != 0) {
-       QgsVectorLayer* lyr = mapCanvas->layerByKey(edtCurKey);
+       QgsVectorLayer* lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurKey));
        QListView* lst = mapCanvas->keyListView(edtCurKey);
        if (lyr && lst) {
            lyr->startEditing();
@@ -254,7 +270,7 @@ void MainWindow::deleteSelection() {
 // ----------------------------------------------------------------------
 void MainWindow::clearSelection() {
     if (edtCurKey.compare(TK_QSTR_NONE) != 0) {
-       QgsVectorLayer* lyr = mapCanvas->layerByKey(edtCurKey);
+       QgsVectorLayer* lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurKey));
        if (lyr) { lyr->removeSelection();}
        QListView* lst = mapCanvas->keyListView(edtCurKey);
        if (lst) lst->selectionModel()->reset();
@@ -330,7 +346,7 @@ void MainWindow::edtUpdateSelection(QListView* lst, QItemSelection selected,
     line = QString(lst->model()->data(deselIndex).toString());
     edtCurItems.clear();
     edtCurItems = line.split(' ');
-    QgsVectorLayer * lyr = mapCanvas->layerByKey(edtCurItems.at(0));
+    QgsVectorLayer * lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurItems.at(0)));
     if (lyr) lyr->removeSelection();
     ui->btnMapRmObj->setEnabled(false);
 
@@ -360,7 +376,7 @@ void MainWindow::edtUpdateSelection(QListView* lst, QItemSelection selected,
        QString six = edtCurItems.at(8);
        int ix = six.replace("IX","").toInt();
        mapCanvas->doCenter1by1(mx,my);
-       QgsVectorLayer * lyr = mapCanvas->layerByKey(edtCurKey);
+       QgsVectorLayer * lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurKey));
        if (lyr && mapCanvas->getMapMode() == MAP_MODE_SELECT) {
              lyr->select(ix);
              ui->btnMapRmObj->setEnabled(true);

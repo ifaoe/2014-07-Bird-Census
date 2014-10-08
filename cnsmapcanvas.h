@@ -40,6 +40,7 @@
 #include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
+#include "layerstack.h"
 
 class OvrMapCanvas;
 
@@ -79,8 +80,14 @@ public:
     QListView* keyListView(QString key);
     int keyTbxLayer(QString key);
     int getMapMode();
-
-
+    QMap<QRadioButton*, QString> buttonKeyMap;
+    QMap<QString, int> keyTbxMap;
+    QMap<QString, QListView*> keyListViewMap;
+    QMap<QString, QRadioButton*> keyButtonMap;
+    QMap<int, QgsVectorLayer*> edtLayerMap;
+    QMap<int, QListView*> edtListViewMap;
+    QMap<int, QString> edtKeyMap;
+    LayerStack* mapLayerStack;
 signals:
     
 public slots:
@@ -98,7 +105,8 @@ public slots:
     void doHandleKeyPressed(QKeyEvent* keyEvent);
     void doHandleKeyReleased(QKeyEvent* keyEvent);
     void doUpdateStatus();
-    QgsVectorLayer* layerByKey(QString key);
+
+    QgsMapLayer* layerByKey(QString key);
 
 #ifdef OPENCV
     int mapImg2CV(const QgsPoint &point, double radius, int width, int height);
@@ -231,6 +239,8 @@ private:
                        QgsVectorLayer *layer);
 
     bool saveData(QString cam, QString file);
+
+    bool addEdtTbx(QString tbName, int tbIndex, QgsVectorLayer *tbLayer, QRadioButton *tbButton, QListView *tbListView);
 
     void refreshLayerPaintList();
 

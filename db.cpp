@@ -262,7 +262,7 @@ bool Db::writeRawImageTile(const bool insert, const int id,
            .arg(session).arg("").arg("").arg(x).arg(y).arg(w).arg(h);
   } else {
       lstr = "UPDATE raw_tiles SET "
-             "epsg = %1, cam = '%2' "
+             "epsg = %1, cam = '%2', "
              "usr = '%3', session = '%4', "
              "tm_when = '%5', tm_seen = '%6', "
              "ux = '%7', uy = '%8', w = '%9', h = '%10' "

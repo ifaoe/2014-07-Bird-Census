@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     ovrmapcanvas.cpp \
     geometrycalc.cpp \
     spa/spa.c \
-    sessionselector.cpp
+    sessionselector.cpp \
+    layerstack.cpp
 
 HEADERS  += mainwindow.h \
     cnsmapcanvas.h \
@@ -41,7 +42,8 @@ HEADERS  += mainwindow.h \
     ovrmapcanvas.h \
     geometrycalc.h \
     spa/spa.h \
-    sessionselector.h
+    sessionselector.h \
+    layerstack.h
 
 FORMS    += mainwindow.ui \
 	sessionselector.ui
