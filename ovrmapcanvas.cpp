@@ -14,7 +14,7 @@ OvrMapCanvas::OvrMapCanvas(QWidget *parent,
 
     out = new TextLogger(this, ui->txtLogger, ui->statusBar);
 
-    useImageToRender(true);
+//    useImageToRender(true); //deprecated
     enableAntiAliasing(true);
     setCanvasColor(QColor(0, 0, 0));
     freeze(false);

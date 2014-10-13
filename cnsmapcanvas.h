@@ -77,17 +77,8 @@ public:
     void setOvrCanvas(OvrMapCanvas* ovrCvs);
     QgsVectorLayer* rbCheckedVectorLayer();
     QListView* rbCheckedListView();
-    QListView* keyListView(QString key);
-    int keyTbxLayer(QString key);
     int getMapMode();
-    QMap<QRadioButton*, QString> buttonKeyMap;
-    QMap<QString, int> keyTbxMap;
-    QMap<QString, QListView*> keyListViewMap;
-    QMap<QString, QRadioButton*> keyButtonMap;
-    QMap<int, QgsVectorLayer*> edtLayerMap;
-    QMap<int, QListView*> edtListViewMap;
-    QMap<int, QString> edtKeyMap;
-    LayerStack* mapLayerStack;
+    bool addEdtTbx(QString tbName, int tbIndex, QListView *tbListView);
 signals:
     
 public slots:
@@ -120,6 +111,11 @@ private:
     Db* db;
     QgsMapLayerRegistry* qgsLyrRegistry = 0;
     OvrMapCanvas* ovrCanvas;
+
+    LayerStack* mapLayerStack;
+    QMap<int, QgsVectorLayer*> edtLayers;
+    QMap<int, QListView*> edtViews;
+    QMap<int, QString> edtKeys;
 
     int rawImgID = -1;
     QString rawImgTmWhen = "";
@@ -236,14 +232,10 @@ private:
                        const QString strCam,
                        const QString strFile,
                        const QString lyrKey,
+                       const int lyrId,
                        QgsVectorLayer *layer);
 
     bool saveData(QString cam, QString file);
-
-    bool addEdtTbx(QString tbName, int tbIndex, QgsVectorLayer *tbLayer, QRadioButton *tbButton, QListView *tbListView);
-
-    void refreshLayerPaintList();
-
 };
 
 #endif // CNSMAPCANVAS_H

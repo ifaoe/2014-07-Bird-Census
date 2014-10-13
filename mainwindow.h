@@ -55,9 +55,12 @@ private:
     QString edtCurKey  = TK_QSTR_NONE;
     int edtCurPk = -1;
     QString edtCurView = TK_QSTR_NONE;
-    QListView* edtViews[6];
+//    QListView* edtViews[6];
     QString edtKey[6];
     QRadioButton* rbEdit[6];
+    QMap<int, QListView*> edtViews;
+    QMap<int, QString> edtKeys;
+    QMap<int, QRadioButton*> edtButtons;
 
     CnsMapCanvas *mapCanvas = 0;
     OvrMapCanvas *ovrCanvas = 0;

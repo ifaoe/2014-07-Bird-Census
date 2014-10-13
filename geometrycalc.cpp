@@ -44,11 +44,11 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
                 QgsGeometry * nc1_img = db->readImageEnvelope(c1,nc1_str);
                 QgsGeometry * c1_img  = db->readImageEnvelope(c1,c1_str);
                 temp_geo_2 = temp_geo_1->difference( nc2_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
                 temp_geo_1 = temp_geo_2->difference( nc1_img );
-                //delete temp_geo_2;
+                delete temp_geo_2;
                 resultgeom = temp_geo_1->difference( c1_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
             } else {
                 resultgeom = db->readImageEnvelope(c2,c2_str);
             }
@@ -74,11 +74,11 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
                 QgsGeometry * sc1_img = db->readImageEnvelope(c1,sc1_str);
                 QgsGeometry * c1_img  = db->readImageEnvelope(c1,c1_str);
                 temp_geo_2 = temp_geo_1->difference( sc2_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
                 temp_geo_1 = temp_geo_2->difference( sc1_img );
-                //delete temp_geo_2;
+                delete temp_geo_2;
                 resultgeom = temp_geo_1->difference( c1_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
             } else {
                 resultgeom = db->readImageEnvelope(c2,c2_str);
             }
@@ -96,11 +96,11 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
                 QgsGeometry * sc1_img = db->readImageEnvelope(c1,sc1_str);
                 QgsGeometry * c2_img  = db->readImageEnvelope(c2,c2_str);
                 temp_geo_2 = temp_geo_1->difference( sc2_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
                 temp_geo_1 = temp_geo_2->difference( sc1_img );
-                //delete temp_geo_2;
+                delete temp_geo_2;
                 resultgeom = temp_geo_1->difference( c2_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
             } else {
                 resultgeom = db->readImageEnvelope(c1,c1_str);
             }
@@ -126,11 +126,11 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
                 QgsGeometry * nc1_img = db->readImageEnvelope(c1,nc1_str);
                 QgsGeometry * c2_img  = db->readImageEnvelope(c2,c2_str);
                 temp_geo_2 = temp_geo_1->difference( nc2_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
                 temp_geo_1 = temp_geo_2->difference( nc1_img );
-                //delete temp_geo_2;
+                delete temp_geo_2;
                 resultgeom = temp_geo_1->difference( c2_img );
-                //delete temp_geo_1;
+                delete temp_geo_1;
             } else {
                 resultgeom = db->readImageEnvelope(c1,c1_str);
             }

@@ -17,6 +17,7 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
 
     // Initialize MapCanvas
     enableAntiAliasing(true);
+    setParallelRenderingEnabled( true );
     setCanvasColor(QColor(0, 0, 0));
     freeze(false);
 
@@ -87,36 +88,12 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     setMapUnits(QGis::Meters);
 
     mapLayerStack = new LayerStack(this, qgsLyrRegistry);
-
-//    buttonKeyMap[ui->rbVF] = KEY_BIRD_FLY;
-//    buttonKeyMap[ui->rbVS] = KEY_BIRD_SWIM;
-//    buttonKeyMap[ui->rbMM] = KEY_MAMMAL;
-//    buttonKeyMap[ui->rbUFO] = KEY_UFO;
-//    buttonKeyMap[ui->rbWV] = KEY_WAVE;
-//    buttonKeyMap[ui->rbSN] = KEY_SUN;
-//
-//    keyTbxMap[KEY_BIRD_SWIM] = 0;
-//    keyTbxMap[KEY_BIRD_FLY] = 1;
-//    keyTbxMap[KEY_MAMMAL] = 2;
-//    keyTbxMap[KEY_UFO] = 3;
-//    keyTbxMap[KEY_SUN] = 4;
-//    keyTbxMap[KEY_WAVE] = 5;
-    addEdtTbx(KEY_BIRD_SWIM, 0, qgsVsLayer, ui->rbVS, ui->tbvEdtVS);
-    addEdtTbx(KEY_BIRD_FLY, 1, qgsVfLayer, ui->rbVF, ui->tbvEdtVF);
-    addEdtTbx(KEY_MAMMAL, 2, qgsMmLayer, ui->rbMM, ui->tbvEdtMM);
-    addEdtTbx(KEY_UFO, 3, qgsUfoLayer, ui->rbUFO, ui->tbvEdtUFO);
-    addEdtTbx(KEY_SUN, 4, qgsSnLayer, ui->rbSN, ui->tbvEdtSN);
-    addEdtTbx(KEY_WAVE, 5, qgsWvLayer, ui->rbWV, ui->tbvEdtWV);
-
-
 }
 
-bool CnsMapCanvas::addEdtTbx(QString tbName, int tbIndex, QgsVectorLayer *tbLayer, QRadioButton *tbButton, QListView *tbListView) {
-	keyTbxMap[tbName] = tbIndex;
-	keyButtonMap[tbName] = tbButton;
-	buttonKeyMap[tbButton] = tbName;
-	keyListViewMap[tbName] = tbListView;
-	edtListViewMap[tbIndex] = tbListView;
+bool CnsMapCanvas::addEdtTbx(QString tbName, int tbIndex, QListView *tbListView) {
+	edtKeys[tbIndex] = tbName;
+	edtViews[tbIndex] = tbListView;
+	edtLayers[tbIndex] = NULL;
 	return true;
 }
 
@@ -357,18 +334,10 @@ bool CnsMapCanvas::doCalcWorldPos(const int pixX ,const int pixY,
 
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
-    qgsVfLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_FLY,
-                                 qgsVfLayer);
-    qgsVsLayer = openEditLayer(config->prjPath(), cam, file, KEY_BIRD_SWIM,
-                                 qgsVsLayer);
-    qgsMmLayer = openEditLayer(config->prjPath(), cam, file, KEY_MAMMAL,
-                                 qgsMmLayer);
-    qgsUfoLayer = openEditLayer(config->prjPath(), cam, file, KEY_UFO,
-                                 qgsUfoLayer);
-    qgsSnLayer = openEditLayer(config->prjPath(), cam, file, KEY_SUN,
-                                 qgsSnLayer);
-    qgsWvLayer = openEditLayer(config->prjPath(), cam, file, KEY_WAVE,
-                                 qgsWvLayer);
+	QMap<int, QgsVectorLayer*>::iterator i;
+	for(i=edtLayers.begin(); i!=edtLayers.end(); ++i) {
+		i.value() = openEditLayer(config->prjPath(), cam, file, edtKeys[i.key()], i.key(), i.value());
+	}
     bool enod = openPolyLayer(cam, file);
     bool done = openRasterLayer(config->prjPath(), cam, file);
 
@@ -396,30 +365,12 @@ bool CnsMapCanvas::saveData(const QString cam, const QString file) {
                       config->appUser(), config->prjSession(),
                       rawImgTmWhen+" "+tmWhen, rawImgTmSeen+" "+tmSeen);
 
-    QStringListModel* model = qobject_cast<QStringListModel*>(ui->tbvEdtVS->model());
-    bool done = db->writeRawCensus(model,KEY_BIRD_SWIM,config->prjUtmSector(), cam, file,
-                       config->appUser(), config->prjSession());
-
-    model = qobject_cast<QStringListModel*>(ui->tbvEdtVF->model());
-    done = done && db->writeRawCensus(model,KEY_BIRD_FLY,config->prjUtmSector(), cam, file,
-                       config->appUser(), config->prjSession());
-
-    model = qobject_cast<QStringListModel*>(ui->tbvEdtMM->model());
-    done = done && db->writeRawCensus(model,KEY_MAMMAL,config->prjUtmSector(), cam, file,
-                       config->appUser(), config->prjSession());
-
-    model = qobject_cast<QStringListModel*>(ui->tbvEdtUFO->model());
-    done = done && db->writeRawCensus(model,KEY_UFO,config->prjUtmSector(), cam, file,
-                       config->appUser(), config->prjSession());
-
-    model = qobject_cast<QStringListModel*>(ui->tbvEdtSN->model());
-    done = done && db->writeRawCensus(model,KEY_SUN,config->prjUtmSector(), cam, file,
-                       config->appUser(), config->prjSession());
-
-    model = qobject_cast<QStringListModel*>(ui->tbvEdtWV->model());
-    done = done && db->writeRawCensus(model,KEY_WAVE,config->prjUtmSector(), cam, file,
-                       config->appUser(), config->prjSession());
-
+    QMap<int, QString>::iterator i;
+    for (i = edtKeys.begin(); i!=edtKeys.end(); ++i) {
+        QStringListModel* model = qobject_cast<QStringListModel*>(edtViews[i.key()]->model());
+        bool done = db->writeRawCensus(model,i.value(),config->prjUtmSector(), cam, file,
+                           config->appUser(), config->prjSession());
+    }
     return true;
 }
 
@@ -429,37 +380,13 @@ QgsMapLayer* CnsMapCanvas::layerByKey(QString key) {
 }
 // --------------------------------------------------------------------------
 QgsVectorLayer* CnsMapCanvas::rbCheckedVectorLayer() {
-	QRadioButton *checked = static_cast<QRadioButton*>(ui->btgLayers->checkedButton());
-	QString key = buttonKeyMap[checked];
-	return static_cast<QgsVectorLayer*>(mapLayerStack->getMapLayer(key));
+	return edtLayers[ui->btgLayers->checkedId()];
 }
 // --------------------------------------------------------------------------
 QListView* CnsMapCanvas::rbCheckedListView() {
-	qDebug() << "Checked id: " << ui->btgLayers->checkedId();
-    if ( ui->rbVS->isChecked() ) {
-        return ui->tbvEdtVS;
-    } else if ( ui->rbVF->isChecked() ) {
-        return ui->tbvEdtVF;
-    } else if ( ui->rbMM->isChecked() ) {
-        return ui->tbvEdtMM;
-    } else if ( ui->rbUFO->isChecked() ) {
-        return ui->tbvEdtUFO;
-    } else if ( ui->rbWV->isChecked() ) {
-        return ui->tbvEdtWV;
-    } else if ( ui->rbSN->isChecked() ) {
-        return ui->tbvEdtSN;
-    }
-    return 0;
-//	return edtListViewMap[ui->btgLayers->checkedId()];
+	return edtViews[ui->btgLayers->checkedId()];
 }
-// --------------------------------------------------------------------------
-QListView* CnsMapCanvas::keyListView(QString key) {
-	return keyListViewMap[key];
-}
-// --------------------------------------------------------------------------
-int CnsMapCanvas::keyTbxLayer(QString key) {
-	return keyTbxMap[key];
-}
+
 // --------------------------------------------------------------------------
 int CnsMapCanvas::getMapMode() { return mapMode; }
 // --------------------------------------------------------------------------
@@ -502,8 +429,6 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
         bool done = false;
         QString lyrName = layer->name();
         QString usrName = config->appUser();
-        int curTbx = keyTbxLayer(lyrName);
-        if (curTbx >=0) ui->tbxLayers->setCurrentIndex(curTbx);
         QgsFeature fet = QgsFeature(layer->dataProvider()->fields());
         fet.setGeometry( QgsGeometry::fromPoint(QgsPoint(point)));
         int ix = nextFeatureId(layer);
@@ -535,7 +460,7 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
                            +layer->name()
                            +QString::number(layer->featureCount()));
         else out->log("..Feature not done "+layer->name());
-        this->refresh();
+//        this->refresh();
 
     } else if (layer && mapMode ==  MAP_MODE_SELECT )  {
          QgsFeatureIterator iter=layer->getFeatures();
@@ -564,6 +489,7 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
                                    const QString strCam,
                                    const QString strFile,
                                    const QString lyrKey,
+                                   const int lyrId,
                                    QgsVectorLayer *layer) {
     if ( layer ) {
          QString id = layer->id();
@@ -597,7 +523,7 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
     out->log("editLayer PROVIDER.NAME "+layer->dataProvider()->name());
     out->log("editLayer PROVIDER.CAPS "+layer->dataProvider()->capabilitiesString());
 
-    QListView* listView = keyListView(lyrKey);
+    QListView* listView = edtViews[lyrId];
     QStringListModel* model = qobject_cast<QStringListModel*>(listView->model());
     QString usr = config->appUser(); int dummy;
     db->readRawCensus(model, layer, strCam, strFile, usr, dummy);

@@ -32,20 +32,6 @@ MainWindow::MainWindow(const AppConfig *aConfig)
     addEdtTbx(KEY_SUN, 4, ui->rbSN, ui->tbvEdtSN);
     addEdtTbx(KEY_WAVE, 5, ui->rbWV, ui->tbvEdtWV);
 
-    edtKey[0] = KEY_BIRD_SWIM; edtKey[1] = KEY_BIRD_FLY; edtKey[2] = KEY_MAMMAL;
-    edtKey[3] = KEY_UFO; edtKey[4] = KEY_SUN; edtKey[5] = KEY_WAVE;
-
-    rbEdit[0] = ui->rbVS; rbEdit[1] = ui->rbVF; rbEdit[2] = ui->rbMM;
-    rbEdit[3] = ui->rbUFO; rbEdit[4] = ui->rbSN; rbEdit[5] = ui->rbWV;
-
-    edtViews[0] = ui->tbvEdtVS; edtViews[1] = ui->tbvEdtVF;
-    edtViews[2] = ui->tbvEdtMM; edtViews[3] = ui->tbvEdtUFO;
-    edtViews[4] = ui->tbvEdtSN; edtViews[5] = ui->tbvEdtWV;
-
-    for (int i = 0; i < 6; ++i) {
-        edtViews[i]->setModel(new QStringListModel);
-    }
-
     db->getImages(ui->tbvImages);
     imgSelector = ui->tbvImages->selectionModel();
 
@@ -116,11 +102,13 @@ MainWindow::MainWindow(const AppConfig *aConfig)
 }
 
 bool MainWindow::addEdtTbx(QString tbName, int tbIndex, QRadioButton * tbButton, QListView * tbListView) {
-	edtKey[tbIndex] = tbName;
+	edtKeys[tbIndex] = tbName;
 	edtViews[tbIndex] = tbListView;
+	edtButtons[tbIndex] = tbButton;
 	rbEdit[tbIndex] = tbButton;
     edtViews[tbIndex]->setModel(new QStringListModel);
     ui->btgLayers->setId(tbButton, tbIndex);
+    mapCanvas->addEdtTbx(tbName, tbIndex, tbListView);
 	return true;
 }
 
@@ -211,34 +199,13 @@ void MainWindow::guiInitAdditionals() {
 
 // ----------------------------------------------------------------------
 void MainWindow::changeEdit(int index) {
-    switch (index) {
-    case 0:
-        ui->rbVS->setChecked(true);
-        break;
-    case 1:
-        ui->rbVF->setChecked(true);
-        break;
-    case 2:
-        ui->rbMM->setChecked(true);
-        break;
-    case 3:
-        ui->rbUFO->setChecked(true);
-        break;
-    case 4:
-        ui->rbSN->setChecked(true);
-        break;
-    case 5:
-        ui->rbWV->setChecked(true);
-        break;
-    default:
-        break;
-    }
+	edtButtons[index]->setChecked(true);
 }
 // ----------------------------------------------------------------------
 void MainWindow::deleteSelection() {
     if (edtCurKey.compare(TK_QSTR_NONE) != 0) {
-       QgsVectorLayer* lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurKey));
-       QListView* lst = mapCanvas->keyListView(edtCurKey);
+       QgsVectorLayer* lyr = mapCanvas->rbCheckedVectorLayer();
+       QListView* lst = mapCanvas->rbCheckedListView();
        if (lyr && lst) {
            lyr->startEditing();
            QgsFeatureList flist= lyr->selectedFeatures();
@@ -261,7 +228,7 @@ void MainWindow::deleteSelection() {
            lyr->dataProvider()->deleteFeatures(lyr->selectedFeaturesIds());
            lyr->commitChanges();
            model->setStringList(slist);
-           mapCanvas->refresh();
+//           mapCanvas->refresh();
        }
    }
 
@@ -270,9 +237,9 @@ void MainWindow::deleteSelection() {
 // ----------------------------------------------------------------------
 void MainWindow::clearSelection() {
     if (edtCurKey.compare(TK_QSTR_NONE) != 0) {
-       QgsVectorLayer* lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurKey));
+       QgsVectorLayer* lyr = mapCanvas->rbCheckedVectorLayer();
        if (lyr) { lyr->removeSelection();}
-       QListView* lst = mapCanvas->keyListView(edtCurKey);
+       QListView* lst = mapCanvas->rbCheckedListView();
        if (lst) lst->selectionModel()->reset();
    }
     edtCurItems.clear();
@@ -285,7 +252,7 @@ void MainWindow::rbToggledVS(bool checked) {
         clearSelection();
         edtCurKey = edtKey[0];
         ui->tbxLayers->setCurrentIndex(0);
-        mapCanvas->refresh();
+//        mapCanvas->refresh();
      }
 }
 // ----------------------------------------------------------------------
@@ -294,7 +261,7 @@ void MainWindow::rbToggledVF(bool checked) {
         clearSelection();
         edtCurKey = edtKey[1];
         ui->tbxLayers->setCurrentIndex(1);
-        mapCanvas->refresh();
+//        mapCanvas->refresh();
      }
 }
 // ----------------------------------------------------------------------
@@ -303,7 +270,7 @@ void MainWindow::rbToggledMM(bool checked) {
        clearSelection();
        edtCurKey = edtKey[2];
         ui->tbxLayers->setCurrentIndex(2);
-        mapCanvas->refresh();
+//        mapCanvas->refresh();
      }
 }
 // ----------------------------------------------------------------------
@@ -312,7 +279,7 @@ void MainWindow::rbToggledUFO(bool checked) {
         clearSelection();
         edtCurKey = edtKey[3];
         ui->tbxLayers->setCurrentIndex(3);
-        mapCanvas->refresh();
+//        mapCanvas->refresh();
      }
 }
 // ----------------------------------------------------------------------
@@ -321,7 +288,7 @@ void MainWindow::rbToggledSN(bool checked) {
         clearSelection();
         edtCurKey = edtKey[4];
         ui->tbxLayers->setCurrentIndex(4);
-        mapCanvas->refresh();
+//        mapCanvas->refresh();
      }
 }
 // ----------------------------------------------------------------------
@@ -330,7 +297,7 @@ void MainWindow::rbToggledWV(bool checked) {
         clearSelection();
         edtCurKey = edtKey[5];
         ui->tbxLayers->setCurrentIndex(5);
-        mapCanvas->refresh();
+//        mapCanvas->refresh();
      }
 }
 
@@ -346,7 +313,7 @@ void MainWindow::edtUpdateSelection(QListView* lst, QItemSelection selected,
     line = QString(lst->model()->data(deselIndex).toString());
     edtCurItems.clear();
     edtCurItems = line.split(' ');
-    QgsVectorLayer * lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurItems.at(0)));
+    QgsVectorLayer * lyr = mapCanvas->rbCheckedVectorLayer();
     if (lyr) lyr->removeSelection();
     ui->btnMapRmObj->setEnabled(false);
 
@@ -376,7 +343,7 @@ void MainWindow::edtUpdateSelection(QListView* lst, QItemSelection selected,
        QString six = edtCurItems.at(8);
        int ix = six.replace("IX","").toInt();
        mapCanvas->doCenter1by1(mx,my);
-       QgsVectorLayer * lyr = static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(edtCurKey));
+       QgsVectorLayer * lyr = mapCanvas->rbCheckedVectorLayer();
        if (lyr && mapCanvas->getMapMode() == MAP_MODE_SELECT) {
              lyr->select(ix);
              ui->btnMapRmObj->setEnabled(true);

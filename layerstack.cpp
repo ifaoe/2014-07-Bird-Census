@@ -18,10 +18,10 @@ LayerStack::~LayerStack() {
 
 bool LayerStack::addMapLayer(QString layerName, QgsMapLayer * mapLayer, int priority) {
 	if(lyrMap.contains(priority)) {
-		qWarning("Warning: Layer with priority %d already exists.", priority);
+		qWarning("Warning addMapLayer: Layer with priority %d already exists.", priority);
 		return false;
 	} else if (priMap.contains(layerName)){
-		qWarning("Warning: Layer with name %s already exists.", layerName.toStdString().c_str());
+		qWarning("Warning addMapLayer: Layer with name %s already exists.", layerName.toStdString().c_str());
 		return false;
 	} else {
 		if (priority == -1) {
@@ -39,7 +39,7 @@ bool LayerStack::addMapLayer(QString layerName, QgsMapLayer * mapLayer, int prio
 
 bool LayerStack::removeMapLayer(QString layerName) {
 	if(!priMap.contains(layerName)) {
-		qWarning("Warning: No layer with name %s found.", layerName.toStdString().c_str());
+		qWarning("Warning removeMapLayer: No layer with name %s found.", layerName.toStdString().c_str());
 		return false;
 	} else {
 		int priority = priMap[layerName];
@@ -53,7 +53,7 @@ QgsMapLayer * LayerStack::getMapLayer(QString layerName) {
 	qDebug() << "LayerName: " << layerName << endl;
 	if (!priMap.contains(layerName)) {
 		return NULL;
-		qWarning("Warning in getMapLayer: No layer named: %s found.", layerName.toStdString().c_str());
+		qWarning("Warning getMapLayer: No layer named: %s found.", layerName.toStdString().c_str());
 	}
 	int priority = priMap[layerName];
 	return lyrMap[priority];
@@ -69,10 +69,10 @@ void LayerStack::registerMapLayers() {
 
 bool LayerStack::setLayerPriority(QString layerName, int priority){
 	if(lyrMap.contains(priority)) {
-		qWarning("Warning: Layer with priority %d already exists.", priority);
+		qWarning("Warning setLayerPriority: Layer with priority %d already exists.", priority);
 		return false;
 	} else if (!priMap.contains(layerName)) {
-		qWarning("Warning: No layer with name %s found.", layerName.toStdString().c_str());
+		qWarning("Warning setLayerPriority: No layer with name %s found.", layerName.toStdString().c_str());
 		return false;
 	} else {
 		// delete old mapping and create new one
