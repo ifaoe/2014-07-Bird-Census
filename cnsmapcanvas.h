@@ -78,7 +78,7 @@ public:
     QgsVectorLayer* rbCheckedVectorLayer();
     QListView* rbCheckedListView();
     int getMapMode();
-    bool addEdtTbx(QString tbName, int tbIndex, QListView *tbListView);
+    bool addEdtLyr(QString tbName, int tbIndex, QListView *tbListView);
 signals:
     
 public slots:
@@ -199,6 +199,7 @@ private:
     QgsVectorLayer* qgsSnLayer = 0 ;
     QgsVectorLayer* qgsUfoLayer = 0 ;
     QgsVectorLayer* qgsWvLayer = 0 ;
+    QgsVectorLayer* qgsEdtLayer = 0;
     QgsVectorLayer* qgsPolyLayer = 0;
     QgsRasterLayer* qgsImgLayer = 0 ;
     QgsRasterDataProvider* qgsImgProvider = 0;

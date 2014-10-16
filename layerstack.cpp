@@ -50,7 +50,6 @@ bool LayerStack::removeMapLayer(QString layerName) {
 }
 
 QgsMapLayer * LayerStack::getMapLayer(QString layerName) {
-	qDebug() << "LayerName: " << layerName << endl;
 	if (!priMap.contains(layerName)) {
 		return NULL;
 		qWarning("Warning getMapLayer: No layer named: %s found.", layerName.toStdString().c_str());

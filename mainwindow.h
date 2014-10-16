@@ -57,7 +57,6 @@ private:
     QString edtCurView = TK_QSTR_NONE;
 //    QListView* edtViews[6];
     QString edtKey[6];
-    QRadioButton* rbEdit[6];
     QMap<int, QListView*> edtViews;
     QMap<int, QString> edtKeys;
     QMap<int, QRadioButton*> edtButtons;

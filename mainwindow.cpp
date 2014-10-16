@@ -105,10 +105,9 @@ bool MainWindow::addEdtTbx(QString tbName, int tbIndex, QRadioButton * tbButton,
 	edtKeys[tbIndex] = tbName;
 	edtViews[tbIndex] = tbListView;
 	edtButtons[tbIndex] = tbButton;
-	rbEdit[tbIndex] = tbButton;
     edtViews[tbIndex]->setModel(new QStringListModel);
     ui->btgLayers->setId(tbButton, tbIndex);
-    mapCanvas->addEdtTbx(tbName, tbIndex, tbListView);
+    mapCanvas->addEdtLyr(tbName, tbIndex, tbListView);
 	return true;
 }
 

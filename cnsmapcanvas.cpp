@@ -90,7 +90,7 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     mapLayerStack = new LayerStack(this, qgsLyrRegistry);
 }
 
-bool CnsMapCanvas::addEdtTbx(QString tbName, int tbIndex, QListView *tbListView) {
+bool CnsMapCanvas::addEdtLyr(QString tbName, int tbIndex, QListView *tbListView) {
 	edtKeys[tbIndex] = tbName;
 	edtViews[tbIndex] = tbListView;
 	edtLayers[tbIndex] = NULL;
@@ -542,10 +542,8 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
                                    const QString strCam,
                                    const QString strFile) {
     if ( qgsImgLayer ) {
-         QString id = qgsImgLayer->id();
          mapLayerStack->removeMapLayer("raster");
          qgsImgLayer = 0;
-//         refreshLayerPaintList();
      }
 
 
@@ -657,7 +655,6 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
 
 bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     if ( qgsPolyLayer ) {
-         QString id = qgsPolyLayer->id();
          mapLayerStack->removeMapLayer("polygon");
          qgsPolyLayer = 0;
     }
@@ -675,7 +672,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     qgsPolyLayer->commitChanges();
     bool done = false;
     qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
-    mapLayerStack->addMapLayer("polygon",qgsVsLayer,2000);
+    mapLayerStack->addMapLayer("polygon",qgsPolyLayer,500);
 
     QgsRectangle rect = qgsPolyLayer->extent();
     rect.setXMinimum(rect.xMinimum()-10);

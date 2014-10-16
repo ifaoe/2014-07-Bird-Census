@@ -108,7 +108,7 @@
              <enum>QFrame::Sunken</enum>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <property name="tabSpacing">
              <number>1</number>
@@ -119,7 +119,7 @@
                <x>0</x>
                <y>0</y>
                <width>248</width>
-               <height>685</height>
+               <height>681</height>
               </rect>
              </property>
              <attribute name="label">
@@ -228,7 +228,7 @@
                <x>0</x>
                <y>0</y>
                <width>253</width>
-               <height>670</height>
+               <height>667</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -618,6 +618,16 @@
                  <property name="spacing">
                   <number>1</number>
                  </property>
+                 <item row="1" column="1" rowspan="2">
+                  <widget class="QRadioButton" name="rbSN">
+                   <property name="text">
+                    <string>Glare/ Glint</string>
+                   </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">btgLayers</string>
+                   </attribute>
+                  </widget>
+                 </item>
                  <item row="0" column="0">
                   <widget class="QRadioButton" name="rbVS">
                    <property name="text">
@@ -625,6 +635,16 @@
                    </property>
                    <property name="checked">
                     <bool>true</bool>
+                   </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">btgLayers</string>
+                   </attribute>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QRadioButton" name="rbVF">
+                   <property name="text">
+                    <string>Vogel fl.</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
@@ -645,26 +665,6 @@
                   <widget class="QRadioButton" name="rbWV">
                    <property name="text">
                     <string>Schaum/ Welle</string>
-                   </property>
-                   <attribute name="buttonGroup">
-                    <string notr="true">btgLayers</string>
-                   </attribute>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QRadioButton" name="rbVF">
-                   <property name="text">
-                    <string>Vogel fl.</string>
-                   </property>
-                   <attribute name="buttonGroup">
-                    <string notr="true">btgLayers</string>
-                   </attribute>
-                  </widget>
-                 </item>
-                 <item row="1" column="1" rowspan="2">
-                  <widget class="QRadioButton" name="rbSN">
-                   <property name="text">
-                    <string>Glare/ Glint</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
@@ -1057,7 +1057,7 @@
                <x>0</x>
                <y>0</y>
                <width>274</width>
-               <height>670</height>
+               <height>667</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1113,7 +1113,7 @@
                <x>0</x>
                <y>0</y>
                <width>248</width>
-               <height>685</height>
+               <height>681</height>
               </rect>
              </property>
              <attribute name="label">
