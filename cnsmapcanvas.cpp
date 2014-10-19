@@ -533,7 +533,7 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
     if (!done) {
         out->error("NO STYLE");
     }
-    mapLayerStack->addMapLayer(lyrKey, layer);
+    mapLayerStack->addMapLayer(lyrKey, layer, lyrId);
     return layer;
  }
 
