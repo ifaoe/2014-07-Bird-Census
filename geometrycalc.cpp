@@ -12,8 +12,10 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
     int sync_id = 0;
     if (cam.compare(c1) == 0) {
             c1_str = image_string; 
+            resultgeom = db->readImageEnvelope(c1,c1_str);
     } else {
             c2_str = image_string;
+            resultgeom = db->readImageEnvelope(c2,c2_str);
     }
 
     db->readIdMapping( &sync_id, &c1_str, &c2_str );
