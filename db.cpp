@@ -144,7 +144,8 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
         
     // manual time zone
     // TODO: get timezone from meta data
-    sdata.timezone = 2;
+    // WORKAROUND: take UTC
+    sdata.timezone = 0;
         
     // weather data
     // TODO: Get weatherdata from crawler
