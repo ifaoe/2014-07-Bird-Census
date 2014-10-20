@@ -33,6 +33,7 @@ public:
     QString getEtcPath() const;
     QString getSymbolPath() const;
     QString getConfig() const;
+    QString getPrjDir() const;
 
 private:
     QStringList args;
@@ -40,6 +41,7 @@ private:
     QString mHome = TK_QSTR_NONE;
     QString mUser = TK_QSTR_NONE;
     QString mRoot = TK_QSTR_NONE;
+    QString prjDir = PRJ_DIR_BIRD_CENSUS;
     QFileInfo fRoot;
     QFileInfo fEtc;
     QFileInfo fSymbol;

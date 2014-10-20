@@ -13,6 +13,13 @@ Defs::Defs(int argc, char *argv[]) {
 				cfgFile = QString::fromAscii(argv[i]);
 			} else {
 				qFatal("Fehlende Konfiguration fuer switch --config!");
+			} 
+		} else if (qArg.compare("-p") == 0 || qArg.compare("--project") == 0) {
+			i++;
+			if (i < argc) {
+				prjDir = QString::fromAscii(argv[i]);
+			} else {
+				qFatal("Fehlende Konfiguration fuer switch --config!");
 			}
 		}
 	}
@@ -76,4 +83,7 @@ QString Defs::getHome() const {
 }
 QString Defs::getUser() const {
 	return mUser;
+}
+QString Defs::getPrjDir() const {
+    return prjDir;
 }

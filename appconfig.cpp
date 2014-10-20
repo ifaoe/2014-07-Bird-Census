@@ -74,7 +74,8 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
 
     // Einlesen der Projektparameter
     // Session Selector starten
-    SessionSelector dialog;
+    QString sprjDir = defaultSettings->getPrjDir();
+    SessionSelector dialog(0, sprjDir);
     dialog.exec();
 
     QFileInfo prjFile = dialog.getSession();

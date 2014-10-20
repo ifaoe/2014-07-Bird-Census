@@ -1,12 +1,12 @@
 #include "sessionselector.h"
 #include "ui_sessionselector.h"
 
-SessionSelector::SessionSelector(QWidget *parent) :
+SessionSelector::SessionSelector(QWidget *parent, QString sprjDir) :
     QDialog(parent),
     ui(new Ui::SessionSelector)
 {
 	ui->setupUi(this);
-	QDir prjdir(PRJ_DIR_BIRD_CENSUS);
+	QDir prjdir(sprjDir);
     prjfiles = prjdir.entryInfoList(QDir::NoDotAndDotDot|QDir::AllEntries);
 	for (int i=0; i < prjfiles.size(); i++) {
         ui->cmbSession->insertItem(i, prjfiles.at(i).fileName());

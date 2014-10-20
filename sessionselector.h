@@ -18,7 +18,7 @@ class SessionSelector : public QDialog
     
 public:
     QFileInfo getSession();
-    explicit SessionSelector(QWidget *parent = 0);
+    explicit SessionSelector(QWidget *parent = 0, QString sprjDir = PRJ_DIR_BIRD_CENSUS);
     ~SessionSelector();
     
 private slots:
