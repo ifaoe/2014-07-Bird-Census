@@ -93,6 +93,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
     connect( ui->rbUFO, SIGNAL(toggled(bool)), this, SLOT(rbToggledUFO(bool)));
     connect( ui->rbSN, SIGNAL(toggled(bool)), this, SLOT(rbToggledSN(bool)));
     connect( ui->rbWV, SIGNAL(toggled(bool)), this, SLOT(rbToggledWV(bool)));
+    connect( ui->chbHideMarker, SIGNAL(clicked(bool)), this, SLOT(hideMarker(bool)));
 
     connect( ui ->tbxLayers,SIGNAL(currentChanged(int)),
              this, SLOT(changeEdit(int)));
@@ -300,6 +301,21 @@ void MainWindow::rbToggledWV(bool checked) {
      }
 }
 
+void MainWindow::hideMarker(bool checked) {
+	if (checked) {
+		QList<QString> mlayers = edtKeys.values();
+		for (int i=0; i<mlayers.size(); i++) {
+			static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(mlayers[i]))->setLayerTransparency(100);
+		}
+		mapCanvas->refresh();
+	} else {
+		QList<QString> mlayers = edtKeys.values();
+		for (int i=0; i<mlayers.size(); i++) {
+			static_cast<QgsVectorLayer*>(mapCanvas->layerByKey(mlayers[i]))->setLayerTransparency(0);
+		}
+		mapCanvas->refresh();
+	}
+}
 
 // ----------------------------------------------------------------------
 void MainWindow::edtUpdateSelection(QListView* lst, QItemSelection selected,
@@ -413,6 +429,8 @@ void MainWindow::imgUpdateSelection(QItemSelection selected,
      if ( changed ) {
               ui->lblCurImage->setText(selFile);
               ui->lblCurCam->setText(selCam);
+              ui->chbHideMarker->setChecked(false);
+//              hideMarker(false);
               if (!mapCanvas->doSaveData(curCam, curFile)) {
                   QMessageBox::critical(this,"Fehler beim Sichern der Daten fuer"
                                         "Metadaten fuer "+curFile+" Kamera "+curCam+

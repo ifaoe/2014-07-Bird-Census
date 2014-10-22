@@ -259,7 +259,6 @@ void CnsMapCanvas::doHandleKeyPressed(QKeyEvent *keyEvent) {
         keyShift = true;
         out->log("MCVS KEY SHIFT MODE ON");
     }
-
 }
 
 // --------------------------------------------------------------------------

@@ -92,3 +92,7 @@ void LayerStack::refreshLayerSet() {
 	}
 	mapCanvas->setLayerSet(layerSet);
 }
+
+QList<QString> LayerStack::getLayerNames() {
+	return priMap.keys();
+}

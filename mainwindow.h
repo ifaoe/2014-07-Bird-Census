@@ -61,6 +61,8 @@ private:
     QMap<int, QString> edtKeys;
     QMap<int, QRadioButton*> edtButtons;
 
+    bool keyMarkerHide = false;
+
     CnsMapCanvas *mapCanvas = 0;
     OvrMapCanvas *ovrCanvas = 0;
     void qgsCheckProviders();
@@ -87,7 +89,7 @@ public slots:
     void mmUpdateSelection(QItemSelection selected, QItemSelection deselected);
     void wvUpdateSelection(QItemSelection selected, QItemSelection deselected);
     void snUpdateSelection(QItemSelection selected, QItemSelection deselected);
-
+    void hideMarker(bool checked);
 private:
     QSqlQueryModel* sqlImgModel = 0;
     void edtUpdateSelection(QListView* lst,
