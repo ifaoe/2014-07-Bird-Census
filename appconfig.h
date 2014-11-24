@@ -96,6 +96,7 @@ public:
     QString qgsPrefixPath() const;
     QString prjPath() const;
     QString prjSession() const;
+    QString prjFlight() const;
     quint8  prjUtmSector() const;
     quint8  imgBandRed() const;
     quint16 imgMinRed() const;
@@ -131,6 +132,7 @@ private:
     // -----------------------------------------------------
     QString   qsPrjPath    = TK_QSTR_NONE;
     QString   qsPrjSession = TK_QSTR_NONE;
+    QString   qsPrjFlight = TK_QSTR_NONE;
     quint8    qui8PrjUtmSector = 0;
 
     // -----------------------------------------------------

@@ -309,6 +309,7 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
 bool OvrMapCanvas::openImageEnvelope(QString strCam,
                                      QString strFile, QgsRectangle imgExt) {
 
+	Q_UNUSED(imgExt);
     if ( qgsImgEnvelope ) {
          QString id = qgsImgEnvelope->id();
          qgsLyrRegistry->removeMapLayer(id);

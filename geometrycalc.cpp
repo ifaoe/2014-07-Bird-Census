@@ -1,5 +1,7 @@
 #include <geometrycalc.h>
 
+//TODO: Bug: SegFault auf erstem Bild in Project 2014-08-05-GT1 und fehlende Envelopen
+
 QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string) 
 {
     QgsGeometry *temp_geo_1, *temp_geo_2, *resultgeom;

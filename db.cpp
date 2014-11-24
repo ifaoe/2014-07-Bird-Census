@@ -391,7 +391,7 @@ QSet<QString> * Db::readImageDone(const QString cam) {
 // -------------------------------------------------------
 bool Db::writeImageDone(const int imgRdy, const int id) {
   QString lstr;
-QMap<QString, QString> *imgrdy = new QMap<QString, QString>;
+
   lstr = "UPDATE raw_images SET rdy = %1 WHERE rimg_id = %2;";
   lstr = lstr.arg(imgRdy).arg(id);
 

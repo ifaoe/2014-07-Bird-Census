@@ -101,6 +101,10 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
              "Aktuelle Session die gelesen werden soll",
              true);
 
+    readQString(project,"flight",  qsPrjFlight, TK_QSTR_NONE,
+             "Aktueller Flug der geladen werden soll",
+             true);
+
     readQuint8(project, "utmSector",     qui8PrjUtmSector, 0, "UTM-Sektor", true);
 
     readQueries(prjRoot);
@@ -136,6 +140,7 @@ QString AppConfig::appUser() const { return defaultSettings->getUser(); }
 QString AppConfig::qgsPrefixPath() const { return qsQgsPrefixPath; }
 QString AppConfig::prjPath() const { return qsPrjPath; }
 QString AppConfig::prjSession() const { return qsPrjSession; }
+QString AppConfig::prjFlight() const { return qsPrjFlight; }
 quint8 AppConfig::prjUtmSector() const { return qui8PrjUtmSector; }
 
 quint16 AppConfig::imgTileWidth() const { return qui16ImgTileWidth; }
@@ -187,6 +192,7 @@ void AppConfig::replacePrjSettings(QString &src) {
     src.replace("$(utmSector)",prj);
     src.replace("$(path)",prjPath());
     src.replace("$(session)",prjSession());
+    src.replace("$(flight)",prjFlight());
 }
 
 
