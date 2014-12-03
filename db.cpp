@@ -193,8 +193,9 @@ bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
         *sync_int = req.value(0).toInt();
         *cam1_img = req.value(1).toString();
         *cam2_img = req.value(2).toString();
+        return true;
     }
-    return true;
+    return false;
 }
 
 // -------------------------------------------------------
