@@ -316,6 +316,7 @@ void MainWindow::hideMarker(bool checked) {
 // ----------------------------------------------------------------------
 void MainWindow::edtUpdateSelection(QListView* lst, QItemSelection selected,
     QItemSelection deselected) {
+	Q_UNUSED(deselected);
     QModelIndexList selItems = selected.indexes();
     QModelIndexList deselItems = selected.indexes();
     QString line = "";
