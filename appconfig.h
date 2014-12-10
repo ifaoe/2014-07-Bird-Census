@@ -11,7 +11,6 @@
 #include <libconfig.h++>
 #include "defs.h"
 #include "sqlquery.h"
-#include "sessionselector.h"
 
 using namespace libconfig;
 
@@ -36,6 +35,8 @@ const QString ACFG_SQL_QRY_READ_IMGENV      = "readImgEnvelope";
 const QString ACFG_SQL_QRY_READ_FDATA       = "readImgFlightData";
 const QString ACFG_SQL_QRY_READ_ID_MAP      = "readIdMapping";
 const QString ACFG_SQL_QRY_READ_DONE        = "readImageDone";
+const QString ACFG_SQL_QRY_READ_IMAGES_FULL = "readImagesFull";
+const QString ACFG_SQL_QRY_READ_IMAGES_10P  = "readImages10p";
 
 const char ACFG_ERR_DOUBLE_KEY[] =
       "Zweideutiger Schluessel %s in Gruppe %s!\n"
@@ -96,8 +97,11 @@ public:
     QString qgsPrefixPath() const;
     QString prjPath() const;
     QString prjSession() const;
+    QString prjType() const;
     QString prjFlight() const;
+    QString prjFilter() const;
     quint8  prjUtmSector() const;
+
     quint8  imgBandRed() const;
     quint16 imgMinRed() const;
     quint16 imgMaxRed() const;
@@ -115,10 +119,18 @@ public:
 
     QStringList getAdmins() const;
 
+    void setPrjPath(QString path);
+    void setPrjSession(QString session);
+    void setPrjFlight(QString flight);
+    void setPrjFilter(QString filter);
+    void setPrjType(QString type);
+    void setPrjUtmSector(quint8 utmSetor);
+
+    void readQueries();
+
 private:
     const Defs *defaultSettings;
     Config    cfg;
-    Config    prj;
     // -----------------------------------------------------
     QString   qsAppTitle   = TK_QSTR_NONE;
     QString   qsAppVersion = TK_QSTR_NONE;
@@ -133,6 +145,8 @@ private:
     QString   qsPrjPath    = TK_QSTR_NONE;
     QString   qsPrjSession = TK_QSTR_NONE;
     QString   qsPrjFlight = TK_QSTR_NONE;
+    QString   qsPrjFilter = TK_QSTR_NONE;
+    QString   qsPrjType = TK_QSTR_NONE;
     quint8    qui8PrjUtmSector = 0;
 
     // -----------------------------------------------------
@@ -155,7 +169,7 @@ private:
     quint16 winTop  = 1;
 
     QMap<QString, SqlQuery*> sqlQueries;
-    void readQueries(const Setting &section);
+
 };
 
 #endif // APPCONFIG_H

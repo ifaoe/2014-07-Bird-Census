@@ -7,6 +7,8 @@
 #include <QAbstractButton>
 #include <QDebug>
 #include "defs.h"
+#include "db.h"
+#include "appconfig.h"
 
 namespace Ui {
 class SessionSelector;
@@ -17,8 +19,7 @@ class SessionSelector : public QDialog
     Q_OBJECT
     
 public:
-    QFileInfo getSession();
-    explicit SessionSelector(QWidget *parent = 0, QString sprjDir = PRJ_DIR_BIRD_CENSUS);
+    explicit SessionSelector(Db * aDb, AppConfig * aCfg);
     ~SessionSelector();
     
 private slots:
@@ -28,9 +29,9 @@ private slots:
     void on_buttonBox_rejected();
 
 private:
+    Db * db = 0;
+    AppConfig * cfg = 0;
     Ui::SessionSelector *ui;
-	QFileInfo Session;
-	QFileInfoList prjfiles;
 };
 
 #endif // SESSIONSELECTOR_H

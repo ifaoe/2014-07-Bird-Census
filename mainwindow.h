@@ -29,7 +29,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(const AppConfig *aConfig);
+    explicit MainWindow(const AppConfig *aConfig, Db * aDb);
     ~MainWindow();
 
     

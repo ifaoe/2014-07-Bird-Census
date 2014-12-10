@@ -2,7 +2,6 @@
 #define DB_H
 
 #include <libconfig.h++>
-#include <appconfig.h>
 #include <QPlainTextEdit>
 #include <QTableWidget>
 #include <QString>
@@ -22,9 +21,11 @@
 #include <qgsfeature.h>
 #include "textlogger.h"
 #include "sqlquery.h"
+#include "appconfig.h"
 #include <ctime>
 
 typedef struct std::tm time_struct;
+struct project;
 
 const char DB_ERR_CFG_DRIVER[] =
               "Fehlerhafter Datenbanktreiber %s + %s in Gruppe %s!\n"
@@ -63,11 +64,12 @@ const char DB_CFGIO_HLP_PORT[] = "Portnummer (5432)";
 
 class Db {
 public:
-    Db(const AppConfig *config, char *key, char *help);
+    explicit Db(AppConfig *config);
 
-    void initConfig(TextLogger *aOut);
+    void initConfig();
+    void initLogger(TextLogger * aOut);
 
-    bool getImages(QTableWidget *result);
+    bool getImages(QTableWidget *result, QString type);
 
     QStringListModel* readRawCensus(QStringListModel *model,
                                    QgsVectorLayer *layer,
@@ -115,8 +117,12 @@ public:
 
     double getSolarAzimuth(const QString cam, const QString image);
 
+    QStringList getSessionList();
+
+    project * getSessionParameters(QString session);
+
 private:
-    const AppConfig *config;
+    AppConfig *config;
     const char *sectionKey;
     const char *sectionHelp;
     QString driver = DB_CFGIO_DEF_DRVN;
@@ -129,5 +135,14 @@ private:
     TextLogger *out = 0;
     QSqlDatabase db;
 };
+
+typedef struct project {
+	QString project_id = "";
+	QString flight_id = "";
+	int utmSector = 32;
+	QString path = "";
+	QString filter = "true";
+	QString session_type = "full";
+} project;
 
 #endif // DB_H

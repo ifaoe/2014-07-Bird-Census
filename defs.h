@@ -12,7 +12,6 @@ const QString TK_QSTR_NONE = "**NONE**";
 const char KEY_IFAOE_BIRD_CENSUS[] = "IFAOE_BIRD_CENSUS_V01";
 const QString ENV_IFAOE_BIRD_CENSUS = "ENV_IFAOE_BIRD_CENSUS";
 const QString ROOT_IFAOE_BIRD_CENSUS = ".bird-census.d";
-const QString PRJ_DIR_BIRD_CENSUS = "/usr/local/ifaoe/Settings/Daisi/Projekte/";
 const QString KEY_BIRD_SWIM = "VS";
 const QString KEY_BIRD_FLY = "VF";
 const QString KEY_MAMMAL = "MM";
@@ -33,7 +32,6 @@ public:
     QString getEtcPath() const;
     QString getSymbolPath() const;
     QString getConfig() const;
-    QString getPrjDir() const;
 
 private:
     QStringList args;
@@ -41,7 +39,6 @@ private:
     QString mHome = TK_QSTR_NONE;
     QString mUser = TK_QSTR_NONE;
     QString mRoot = TK_QSTR_NONE;
-    QString prjDir = PRJ_DIR_BIRD_CENSUS;
     QFileInfo fRoot;
     QFileInfo fEtc;
     QFileInfo fSymbol;

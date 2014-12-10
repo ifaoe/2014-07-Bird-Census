@@ -3,17 +3,15 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "spa/spa.h"
 
-Db::Db(const AppConfig *aConfig, char *key, char *help) :
-    config(aConfig), sectionKey(key), sectionHelp(help)
+Db::Db(AppConfig *aConfig) :
+    config(aConfig)
 {
-
 }
 
-void Db::initConfig(TextLogger *aOut) {
+void Db::initConfig() {
 
     const Setting &root = config->root();
-    const Setting &section = config->readGroup(root, sectionKey, sectionHelp);
-    out = aOut;
+    const Setting &section = config->readGroup(root, "database", "Datenbankkonfiguration");
     AppConfig::readQString(section,
                         DB_CFGIO_KEY_DRVN,
                         driver,
@@ -65,7 +63,8 @@ void Db::initConfig(TextLogger *aOut) {
     QString strPort = ":"+QString::number(port);
     uri = user+":"+pass+"@"+driver+"://"+host+strPort+"/"+name;
     if ( db.open() ) {
-        out->log("OPEN DATABASE "+uri);
+//        out->log("OPEN DATABASE "+uri);
+    	qDebug() << "OPEN DATABASE "+uri;
     } else {
 
         QString msg = db.lastError().text();
@@ -75,17 +74,21 @@ void Db::initConfig(TextLogger *aOut) {
     }
 }
 
+void Db::initLogger(TextLogger * aOut) {
+	out = aOut;
+}
 
 // -------------------------------------------------------
 QgsGeometry* Db::readImageEnvelope(const QString cam,
                                   const QString image) {
 
-    QgsGeometry* geom;
+    QgsGeometry* geom = 0;
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMGENV);
     QString resolv =  q->query.arg(cam).arg(image);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+//        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return 0;
     }
     while (req.next()) {
@@ -110,12 +113,13 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     QString resolv = q->query.arg(cam).arg(image);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+//        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return 0.0;
     }
     spa_data sdata;
     QString date, time;
-    double cog;
+    double cog = 0;
     while(req.next()) {
             sdata.longitude  = req.value(0).toDouble();
             sdata.latitude   = req.value(1).toDouble();
@@ -186,7 +190,8 @@ bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
     QString resolv =q->query.arg(arg_name).arg(arg_value);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+//        out->error(req.lastError().text());
+        qDebug() << req.lastError().text();
         return false;
     }
     while (req.next()) {
@@ -204,6 +209,7 @@ bool Db::readRawImageTile(const quint8 epsg, const QString cam, const QString fi
                       int &id,
                       QString &ux, QString &uy, QString &w, QString &h,
                       QString &tmWhen, QString &tmSeen) {
+	Q_UNUSED(session); Q_UNUSED(epsg);
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_RIMAGE_TILE);
     QString resolv =  q->query.arg(cam).arg(file).arg(usr);
     out->log(resolv);
@@ -211,7 +217,8 @@ bool Db::readRawImageTile(const quint8 epsg, const QString cam, const QString fi
     QSqlQuery req(db);
     id =-1; tmWhen = ""; tmSeen = "";
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+//        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return false;
     }
     if (! req.next()) return true;
@@ -230,6 +237,7 @@ bool Db::readRawImageTile(const quint8 epsg, const QString cam, const QString fi
 bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
                       const QString usr, const QString session,
                       int &id, QString &tmWhen, QString &tmSeen) {
+	Q_UNUSED(session); Q_UNUSED(epsg);
     SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_RIMAGE);
     QString resolv = q->query.arg(cam).arg(file).arg(usr);
     out->log(resolv);
@@ -237,7 +245,8 @@ bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
     QSqlQuery req(db);
     id =-1; tmWhen = ""; tmSeen = "";
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+//        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return false;
     }
     if (! req.next()) return true;
@@ -275,7 +284,8 @@ bool Db::writeRawImageTile(const bool insert, const int id,
 
   QSqlQuery write(db);
   if (!write.exec(lstr)) {
-      out->error(write.lastError().text());
+//      out->error(write.lastError().text());
+	  qDebug() << write.lastError().text();
       return false;
   }
   return true;
@@ -304,7 +314,8 @@ bool Db::writeRawImage(const bool insert, const int id,
 
   QSqlQuery write(db);
   if (!write.exec(lstr)) {
-      out->error(write.lastError().text());
+//      out->error(write.lastError().text());
+	  qDebug() << write.lastError().text();
       return false;
   }
   return true;
@@ -318,6 +329,7 @@ bool Db::writeRawCensus(QStringListModel* model,
                       const QString img,
                       const QString user,
                       const QString session) {
+	Q_UNUSED(type);
     QStringList list = model->stringList();
 
     if (list.size()<1) return true;
@@ -350,7 +362,8 @@ bool Db::writeRawCensus(QStringListModel* model,
         }
         QSqlQuery write(db);
         if (!write.exec(lstr)) {
-            out->error(write.lastError().text());
+//            out->error(write.lastError().text());
+            qDebug() << write.lastError().text();
             return false;
         }
     }
@@ -365,7 +378,7 @@ bool Db::deleteRawCensus(int id) {
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
 
-        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return false;
     }
     return true;
@@ -380,7 +393,7 @@ QSet<QString> * Db::readImageDone(const QString cam) {
     out->log(q->desc);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return imgrdy;
     }
     while (req.next()) {
@@ -398,7 +411,7 @@ bool Db::writeImageDone(const int imgRdy, const int id) {
 
   QSqlQuery write(db);
   if (!write.exec(lstr)) {
-      out->error(write.lastError().text());
+	  qDebug() << write.lastError().text();
       return false;
   }
   return true;
@@ -425,10 +438,10 @@ QStringListModel* Db::readRawCensus(QStringListModel* model,
         lyrName = layer->name();
         resolv =  q->query.arg(lyrName).arg(cam).arg(img).arg(user);
     }
-    out->log(resolv);
-    out->log(q->desc);
+    qDebug() << resolv;
+    qDebug() << q->desc;
     QSqlQuery req(db);
-    if ( ! req.exec(resolv) ) out->error(req.lastError().text());
+    if ( ! req.exec(resolv) ) qDebug() << req.lastError().text();
     QgsFeatureList flist = QgsFeatureList();
     QgsFeature fet = QgsFeature(layer->dataProvider()->fields());
     int cnt = 1;
@@ -466,14 +479,25 @@ QStringListModel* Db::readRawCensus(QStringListModel* model,
 }
 
 // -------------------------------------------------------
-bool Db::getImages(QTableWidget *result){
-    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMAGES);
+bool Db::getImages(QTableWidget *result, QString type){
+	SqlQuery *q;
+	if (type == "full") {
+		qDebug() << "Getting all referenced images.";
+		q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMAGES_FULL);
+	} else if (type == "10p") {
+		qDebug() << "Getting 10% of all referenced images.";
+		q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMAGES_10P);
+	} else {
+		qDebug() << "Unknown session type. Getting all Images.";
+		q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMAGES_FULL);
+	}
+
     QString resolv = q->query;
-    out->log(resolv);
-    out->log(q->desc);
+    qDebug() << resolv;
+    qDebug() << q->desc;
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {
-        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
         return false;
     }
     QSet<QString> *rdy_cam1 = readImageDone(QString::fromUtf8("1"));
@@ -511,4 +535,37 @@ bool Db::getImages(QTableWidget *result){
     return true;
 }
 
+QStringList Db::getSessionList() {
+    QStringList sessionlist;
+    QString query = "SELECT project_id FROM projects where active=1";
+    qDebug() << query;
+    QSqlQuery req(db);
+    if ( ! req.exec(query) ) {
+    	qDebug() << req.lastError().text();
+        return sessionlist;
+    }
+    while (req.next()) {
+        sessionlist.append(QString(req.value(0).toString()));
+    }
+    return sessionlist;
+}
 
+project * Db::getSessionParameters(QString session) {
+    project * prj = new project;
+    QString query = "SELECT project_id, flight_id, utm_sector, path, image_filter, session_type FROM projects where project_id='" + session + "'";
+    qDebug() << query;
+    QSqlQuery req(db);
+    if ( ! req.exec(query) ) {
+    	qDebug() << req.lastError().text();
+        return prj;
+    }
+    if(req.next()) {
+    		prj->project_id = QString(req.value(0).toString());
+    		prj->flight_id = QString(req.value(1).toString());
+    		prj->utmSector = req.value(2).toInt();
+    		prj->path = QString(req.value(3).toString());
+    		prj->filter = QString(req.value(4).toString());
+    		prj->session_type = QString(req.value(5).toString());
+    }
+    return prj;
+}

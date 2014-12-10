@@ -367,7 +367,7 @@ bool CnsMapCanvas::saveData(const QString cam, const QString file) {
     QMap<int, QString>::iterator i;
     for (i = edtKeys.begin(); i!=edtKeys.end(); ++i) {
         QStringListModel* model = qobject_cast<QStringListModel*>(edtViews[i.key()]->model());
-        bool done = db->writeRawCensus(model,i.value(),config->prjUtmSector(), cam, file,
+        db->writeRawCensus(model,i.value(),config->prjUtmSector(), cam, file,
                            config->appUser(), config->prjSession());
     }
     return true;
@@ -490,6 +490,7 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
                                    const QString lyrKey,
                                    const int lyrId,
                                    QgsVectorLayer *layer) {
+	Q_UNUSED(imagePath);
     if ( layer ) {
          QString id = layer->id();
          mapLayerStack->removeMapLayer(lyrKey);

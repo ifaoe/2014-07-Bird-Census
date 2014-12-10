@@ -8,7 +8,6 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     // Lesen und parsen der Konfiguration
     const char* cfgFile = defaultSettings->getConfig().toStdString().c_str();
 
-
     try {
         cfg.readFile( cfgFile );
     } catch(const FileIOException &fioex)  {
@@ -21,7 +20,6 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     // @TODO Include directory setzen
     // const char* cfgInclude = defaultSettings->getEtc().toStdString().c_str();
     // cfg.setIncludeDir( cfgInclude );
-
     const Setting& cfgRoot = cfg.getRoot();
 
     // Einlesen der Grundparameter
@@ -70,44 +68,6 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     readQuint16(image, "greenMax",  qui16ImgMaxGreen, 3, "Maximaler Wert gruener Kanal", true);
     readQuint16(image, "tileWidth",  qui16ImgTileWidth, 800, "Breite der Image Tiles", true);
     readQuint16(image, "tileHeight",  qui16ImgTileHeight, 800, "Hoehe der Image Tiles", true);
-
-
-    // Einlesen der Projektparameter
-    // Session Selector starten
-    QString sprjDir = defaultSettings->getPrjDir();
-    SessionSelector dialog(0, sprjDir);
-    dialog.exec();
-
-    QFileInfo prjFile = dialog.getSession();
-
-    try {
-        prj.readFile( prjFile.filePath().toStdString().c_str() );
-    } catch(const FileIOException &fioex)  {
-        qFatal("Fehler in Konfiguration %s!", prjFile.filePath().toStdString().c_str() );
-    } catch(const ParseException &pex) {
-        qFatal("Fehler in Konfiguration %s in Zeile %d\n Details: %s! ",
-            pex.getFile(), pex.getLine(), pex.getError());
-    }
-
-    const Setting& prjRoot = prj.getRoot();
-
-    const Setting& project = readGroup(prjRoot, "project", "Pfad zu den Projektdaten");
-
-    readQString(project,"path",  qsPrjPath, "/usr/local/ifaoe/daisi/prj",
-             "Pfadprefix fuer die Qgis-Installation LINUX /usr oder /usr/local",
-             true);
-
-    readQString(project,"session",  qsPrjSession, TK_QSTR_NONE,
-             "Aktuelle Session die gelesen werden soll",
-             true);
-
-    readQString(project,"flight",  qsPrjFlight, TK_QSTR_NONE,
-             "Aktueller Flug der geladen werden soll",
-             true);
-
-    readQuint8(project, "utmSector",     qui8PrjUtmSector, 0, "UTM-Sektor", true);
-
-    readQueries(prjRoot);
 }
 
 // -------------------------------------------------------------------------
@@ -140,7 +100,9 @@ QString AppConfig::appUser() const { return defaultSettings->getUser(); }
 QString AppConfig::qgsPrefixPath() const { return qsQgsPrefixPath; }
 QString AppConfig::prjPath() const { return qsPrjPath; }
 QString AppConfig::prjSession() const { return qsPrjSession; }
+QString AppConfig::prjType() const { return qsPrjType; }
 QString AppConfig::prjFlight() const { return qsPrjFlight; }
+QString AppConfig::prjFilter() const { return qsPrjFilter; }
 quint8 AppConfig::prjUtmSector() const { return qui8PrjUtmSector; }
 
 quint16 AppConfig::imgTileWidth() const { return qui16ImgTileWidth; }
@@ -167,8 +129,9 @@ Setting& AppConfig::root() const {  return cfg.getRoot(); }
  * @param section
  * @todo move int SqlQuery class
  */
-void AppConfig::readQueries(const Setting& section) {
-    const Setting& queries = readGroup(section, "sqlQueries",
+void AppConfig::readQueries() {
+	const Setting& cfgRoot = cfg.getRoot();
+    const Setting& queries = readGroup(cfgRoot, "sqlQueries",
                                        "Gruppe der SQL Abfragen");
     const char* HELP_TMPL = "Schablone fuer die SQL-Abfrage";
     const char* HELP_DESC = "Beschreibung der SQL-Abfrage";
@@ -177,6 +140,7 @@ void AppConfig::readQueries(const Setting& section) {
     for (int i=0; i < len; ++i) {
         const Setting& set = queries[i];
         QString key = QString(set.getName());
+        qDebug() << "Key: " << key;
         QString query, desc;
         readQString(set, "query", query, TK_QSTR_NONE, HELP_TMPL, true);
         readQString(set, "help", desc, TK_QSTR_NONE, HELP_DESC, true);
@@ -193,6 +157,7 @@ void AppConfig::replacePrjSettings(QString &src) {
     src.replace("$(path)",prjPath());
     src.replace("$(session)",prjSession());
     src.replace("$(flight)",prjFlight());
+    src.replace("$(filter)",prjFilter());
 }
 
 
@@ -274,4 +239,14 @@ QStringList AppConfig::getAdmins() const {
     return usrAdmins;
 }
 
+/*
+ * set methods
+ */
+
+void AppConfig::setPrjSession(QString session) { qsPrjSession = session; }
+void AppConfig::setPrjFlight(QString flight) { qsPrjFlight = flight; }
+void AppConfig::setPrjFilter(QString filter) { qsPrjFilter = filter; }
+void AppConfig::setPrjPath(QString path) { qsPrjPath = path; }
+void AppConfig::setPrjType(QString type) { qsPrjType = type; }
+void AppConfig::setPrjUtmSector(quint8 utmSector) { qui8PrjUtmSector = utmSector; }
 

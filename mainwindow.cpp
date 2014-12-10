@@ -2,8 +2,8 @@
 #include "ui_mainwindow.h"
 #include "db.h"
 
-MainWindow::MainWindow(const AppConfig *aConfig)
-    : QMainWindow(0), config(aConfig), ui(new Ui::MainWindow)
+MainWindow::MainWindow(const AppConfig *aConfig, Db * aDb)
+    : QMainWindow(0), config(aConfig), ui(new Ui::MainWindow), db(aDb)
 {
 	qDebug() << "Main Window Construct";
     // Aufsetzen der GUI Grundumgebung + Logger
@@ -18,11 +18,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
     qgsLyrRegistry = QgsMapLayerRegistry::instance();
     qgsCheckProviders();
 
-    // Einlesen der Datenbankparameter
-    db = new Db (config, (char*)"database",
-                 (char*)"Datenbankkonfiguration");
-
-    db->initConfig(logger);
+    db->initLogger(logger);
     guiInitAdditionals();
 
     addEdtTbx(KEY_BIRD_SWIM, 0, ui->rbVS, ui->tbvEdtVS);
@@ -32,7 +28,7 @@ MainWindow::MainWindow(const AppConfig *aConfig)
     addEdtTbx(KEY_SUN, 4, ui->rbSN, ui->tbvEdtSN);
     addEdtTbx(KEY_WAVE, 5, ui->rbWV, ui->tbvEdtWV);
 
-    db->getImages(ui->tbvImages);
+    db->getImages(ui->tbvImages, config->prjType());
     imgSelector = ui->tbvImages->selectionModel();
 
     vsSelector  = ui->tbvEdtVS->selectionModel();
