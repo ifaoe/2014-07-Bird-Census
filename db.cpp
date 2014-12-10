@@ -552,7 +552,7 @@ QStringList Db::getSessionList() {
 
 project * Db::getSessionParameters(QString session) {
     project * prj = new project;
-    QString query = "SELECT project_id, flight_id, utm_sector, path, image_filter, session_type FROM projects where project_id='" + session + "'";
+    QString query = "SELECT project_id, flight_id, utm_sector, path, image_filter, session_type FROM projects where project_id='" + session + "' ORDER BY project_id";
     qDebug() << query;
     QSqlQuery req(db);
     if ( ! req.exec(query) ) {
