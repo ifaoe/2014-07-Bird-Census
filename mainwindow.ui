@@ -623,6 +623,9 @@
                    <property name="text">
                     <string>Glare/ Glint</string>
                    </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>SN</string>
+                   </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
                    </attribute>
@@ -636,6 +639,9 @@
                    <property name="checked">
                     <bool>true</bool>
                    </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>VS</string>
+                   </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
                    </attribute>
@@ -645,6 +651,9 @@
                   <widget class="QRadioButton" name="rbVF">
                    <property name="text">
                     <string>Vogel fl.</string>
+                   </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>VF</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
@@ -656,6 +665,9 @@
                    <property name="text">
                     <string>Wal/ Robbe</string>
                    </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>MM</string>
+                   </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
                    </attribute>
@@ -666,6 +678,9 @@
                    <property name="text">
                     <string>Schaum/ Welle</string>
                    </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>WV</string>
+                   </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>
                    </attribute>
@@ -675,6 +690,9 @@
                   <widget class="QRadioButton" name="rbUFO">
                    <property name="text">
                     <string>unbekannt</string>
+                   </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>UO</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>

@@ -83,13 +83,8 @@ MainWindow::MainWindow(const AppConfig *aConfig, Db * aDb)
              this,
              SLOT(snUpdateSelection(QItemSelection,QItemSelection)));
 
-    connect( ui->rbVS, SIGNAL(toggled(bool)), this, SLOT(rbToggledVS(bool)));
-    connect( ui->rbVF, SIGNAL(toggled(bool)), this, SLOT(rbToggledVF(bool)));
-    connect( ui->rbMM, SIGNAL(toggled(bool)), this, SLOT(rbToggledMM(bool)));
-    connect( ui->rbUFO, SIGNAL(toggled(bool)), this, SLOT(rbToggledUFO(bool)));
-    connect( ui->rbSN, SIGNAL(toggled(bool)), this, SLOT(rbToggledSN(bool)));
-    connect( ui->rbWV, SIGNAL(toggled(bool)), this, SLOT(rbToggledWV(bool)));
     connect( ui->chbHideMarker, SIGNAL(clicked(bool)), this, SLOT(hideMarker(bool)));
+    connect( ui->btgLayers, SIGNAL(buttonClicked(int)), this, SLOT(rbToggledType()));
 
     connect( ui ->tbxLayers,SIGNAL(currentChanged(int)),
              this, SLOT(changeEdit(int)));
@@ -242,59 +237,10 @@ void MainWindow::clearSelection() {
     edtCurPkStr = TK_QSTR_NONE; edtCurPk = -1;
 }
 
-// ----------------------------------------------------------------------
-void MainWindow::rbToggledVS(bool checked) {
-    if (checked) {
-        clearSelection();
-        edtCurKey = edtKey[0];
-        ui->tbxLayers->setCurrentIndex(0);
-//        mapCanvas->refresh();
-     }
-}
-// ----------------------------------------------------------------------
-void MainWindow::rbToggledVF(bool checked) {
-    if (checked) {
-        clearSelection();
-        edtCurKey = edtKey[1];
-        ui->tbxLayers->setCurrentIndex(1);
-//        mapCanvas->refresh();
-     }
-}
-// ----------------------------------------------------------------------
-void MainWindow::rbToggledMM(bool checked) {
-    if (checked) {
-       clearSelection();
-       edtCurKey = edtKey[2];
-        ui->tbxLayers->setCurrentIndex(2);
-//        mapCanvas->refresh();
-     }
-}
-// ----------------------------------------------------------------------
-void MainWindow::rbToggledUFO(bool checked) {
-    if (checked) {
-        clearSelection();
-        edtCurKey = edtKey[3];
-        ui->tbxLayers->setCurrentIndex(3);
-//        mapCanvas->refresh();
-     }
-}
-// ----------------------------------------------------------------------
-void MainWindow::rbToggledSN(bool checked) {
-    if (checked) {
-        clearSelection();
-        edtCurKey = edtKey[4];
-        ui->tbxLayers->setCurrentIndex(4);
-//        mapCanvas->refresh();
-     }
-}
-// ----------------------------------------------------------------------
-void MainWindow::rbToggledWV(bool checked) {
-    if (checked) {
-        clearSelection();
-        edtCurKey = edtKey[5];
-        ui->tbxLayers->setCurrentIndex(5);
-//        mapCanvas->refresh();
-     }
+void MainWindow::rbToggledType() {
+	clearSelection();
+	edtCurKey = ui->btgLayers->checkedButton()->property("dbvalue").toString();
+	ui->tbxLayers->setCurrentIndex(ui->btgLayers->checkedId());
 }
 
 void MainWindow::hideMarker(bool checked) {

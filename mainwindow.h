@@ -75,12 +75,7 @@ public slots:
     void saveData();
     void clearSelection();
     void deleteSelection();
-    void rbToggledVS(bool checked);
-    void rbToggledVF(bool checked);
-    void rbToggledMM(bool checked);
-    void rbToggledUFO(bool checked);
-    void rbToggledSN(bool checked);
-    void rbToggledWV(bool checked);
+    void rbToggledType();
     void changeEdit(int index);
     void imgUpdateSelection(QItemSelection selected, QItemSelection deselected);
     void vsUpdateSelection(QItemSelection selected, QItemSelection deselected);
