@@ -17,6 +17,15 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
             pex.getFile(), pex.getLine(), pex.getError());
     }
 
+    try {
+        qry.readFile( QUERY_IFAOE_BIRD_CENSUS.toStdString().c_str() );
+    } catch(const FileIOException &fioex)  {
+        qFatal("Fehler in Konfiguration %s!", QUERY_IFAOE_BIRD_CENSUS.toStdString().c_str() );
+    } catch(const ParseException &pex) {
+        qFatal("Fehler in Konfiguration %s in Zeile %d\n Details: %s! ",
+            pex.getFile(), pex.getLine(), pex.getError());
+    }
+
     // @TODO Include directory setzen
     // const char* cfgInclude = defaultSettings->getEtc().toStdString().c_str();
     // cfg.setIncludeDir( cfgInclude );
@@ -130,7 +139,7 @@ Setting& AppConfig::root() const {  return cfg.getRoot(); }
  * @todo move int SqlQuery class
  */
 void AppConfig::readQueries() {
-	const Setting& cfgRoot = cfg.getRoot();
+	const Setting& cfgRoot = qry.getRoot();
     const Setting& queries = readGroup(cfgRoot, "sqlQueries",
                                        "Gruppe der SQL Abfragen");
     const char* HELP_TMPL = "Schablone fuer die SQL-Abfrage";

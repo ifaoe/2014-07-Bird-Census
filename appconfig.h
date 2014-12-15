@@ -131,6 +131,7 @@ public:
 private:
     const Defs *defaultSettings;
     Config    cfg;
+    Config	  qry;
     // -----------------------------------------------------
     QString   qsAppTitle   = TK_QSTR_NONE;
     QString   qsAppVersion = TK_QSTR_NONE;
