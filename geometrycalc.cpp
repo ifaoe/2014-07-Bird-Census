@@ -37,7 +37,9 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
             temp_geo_1 = db->readImageEnvelope(c1,c1_str);
             if( db->readIdMapping( &nsync_id, &nc1_str, &nc2_str) ) {
                 QgsGeometry * nc1_img = db->readImageEnvelope(c1,nc1_str);
-                resultgeom = temp_geo_1->difference( nc1_img );
+                QgsGeometry * nc2_img = db->readImageEnvelope(c2,nc2_str);
+                temp_geo_2 = temp_geo_1->difference( nc1_img );
+                resultgeom = temp_geo_2->difference( nc2_img );
             } else {
                 resultgeom = db->readImageEnvelope(c1,c1_str);
             }
@@ -66,8 +68,12 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
         if (cam.compare(c1) == 0) {      
             temp_geo_1 = db->readImageEnvelope(c1,c1_str);
             if( db->readIdMapping( &ssync_id, &sc1_str, &sc2_str) ) {
+//                QgsGeometry * sc1_img = db->readImageEnvelope(c1,sc1_str);
+//                resultgeom = temp_geo_1->difference( sc1_img );
                 QgsGeometry * sc1_img = db->readImageEnvelope(c1,sc1_str);
-                resultgeom = temp_geo_1->difference( sc1_img );
+                QgsGeometry * sc2_img = db->readImageEnvelope(c2,sc2_str);
+                temp_geo_2 = temp_geo_1->difference( sc1_img );
+                resultgeom = temp_geo_2->difference( sc2_img );
             } else {
                 resultgeom = db->readImageEnvelope(c1,c1_str);
             }
@@ -111,8 +117,12 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
         } else {
             temp_geo_1 = db->readImageEnvelope(c2,c2_str);
             if( db->readIdMapping( &ssync_id, &sc1_str, &sc2_str) ) {
+                QgsGeometry * sc1_img = db->readImageEnvelope(c1,sc1_str);
                 QgsGeometry * sc2_img = db->readImageEnvelope(c2,sc2_str);
-                resultgeom = temp_geo_1->difference( sc2_img );
+                temp_geo_2 = temp_geo_1->difference( sc1_img );
+                resultgeom = temp_geo_2->difference( sc2_img );
+//                QgsGeometry * sc2_img = db->readImageEnvelope(c2,sc2_str);
+//                resultgeom = temp_geo_1->difference( sc2_img );
             } else {
                 resultgeom = db->readImageEnvelope(c2,c2_str);
             }
@@ -141,8 +151,12 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
         } else {
             temp_geo_1 = db->readImageEnvelope(c2,c2_str);
             if( db->readIdMapping( &nsync_id, &nc1_str, &nc2_str) ) {
+//                QgsGeometry * nc2_img = db->readImageEnvelope(c2,nc2_str);
+//                resultgeom = temp_geo_1->difference( nc2_img );
+                QgsGeometry * nc1_img = db->readImageEnvelope(c1,nc1_str);
                 QgsGeometry * nc2_img = db->readImageEnvelope(c2,nc2_str);
-                resultgeom = temp_geo_1->difference( nc2_img );
+                temp_geo_2 = temp_geo_1->difference( nc1_img );
+                resultgeom = temp_geo_2->difference( nc2_img );
             } else {
                 resultgeom = db->readImageEnvelope(c2,c2_str);
             }

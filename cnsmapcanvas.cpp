@@ -183,8 +183,8 @@ void CnsMapCanvas::doCenter1by1(QgsPoint point) {
 void CnsMapCanvas::doCenter1by1(double x, double y) {
      int px, py;
      doCalcPixPos(QgsPoint(x,y),px,py);
-     int w2 = this->width()/2;
-     int h2 = this->height()/2;
+     int w2 = this->width()*scaleFactor;
+     int h2 = this->height()*scaleFactor;
      doCalcWorldPos(px-w2,py+h2,dblCurMinUtmX,dblCurMinUtmY);
      doCalcWorldPos(px+w2,py-h2,dblCurMaxUtmX,dblCurMaxUtmY);
      QgsRectangle rect(dblCurMinUtmX,
@@ -335,7 +335,8 @@ bool CnsMapCanvas::doCalcWorldPos(const int pixX ,const int pixY,
 bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
 	QMap<int, QgsVectorLayer*>::iterator i;
 	for(i=edtLayers.begin(); i!=edtLayers.end(); ++i) {
-		i.value() = openEditLayer(config->prjPath(), cam, file, edtKeys[i.key()], i.key(), i.value());
+		i.value() =
+				openEditLayer(config->prjPath(), cam, file, edtKeys[i.key()], i.key(), i.value());
 	}
     bool enod = openPolyLayer(cam, file);
     bool done = openRasterLayer(config->prjPath(), cam, file);
@@ -601,17 +602,20 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
     QgsContrastEnhancement* qgsContrastEnhRed = new QgsContrastEnhancement(QGis::UInt16);
     qgsContrastEnhRed->setMinimumValue(config->imgMinRed());
     qgsContrastEnhRed->setMaximumValue(config->imgMaxRed());
-    qgsContrastEnhRed->setContrastEnhancementAlgorithm ( QgsContrastEnhancement::StretchToMinimumMaximum);
+    qgsContrastEnhRed->setContrastEnhancementAlgorithm (
+    		QgsContrastEnhancement::StretchToMinimumMaximum);
 
     QgsContrastEnhancement* qgsContrastEnhGreen = new QgsContrastEnhancement(QGis::UInt16);
     qgsContrastEnhGreen->setMinimumValue(config->imgMinGreen());
     qgsContrastEnhGreen->setMaximumValue(config->imgMaxGreen());
-    qgsContrastEnhGreen->setContrastEnhancementAlgorithm ( QgsContrastEnhancement::StretchToMinimumMaximum);
+    qgsContrastEnhGreen->setContrastEnhancementAlgorithm (
+    		QgsContrastEnhancement::StretchToMinimumMaximum);
 
     QgsContrastEnhancement* qgsContrastEnhBlue = new QgsContrastEnhancement(QGis::UInt16);
     qgsContrastEnhBlue->setMinimumValue(config->imgMinBlue());
     qgsContrastEnhBlue->setMaximumValue(config->imgMaxBlue());
-    qgsContrastEnhBlue->setContrastEnhancementAlgorithm ( QgsContrastEnhancement::StretchToMinimumMaximum);
+    qgsContrastEnhBlue->setContrastEnhancementAlgorithm (
+    		QgsContrastEnhancement::StretchToMinimumMaximum);
 
     QgsMultiBandColorRenderer* renderer = new QgsMultiBandColorRenderer(
                 qgsImgProvider,
@@ -682,6 +686,10 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     setExtent(rect);
 
     return true;
+}
+
+double CnsMapCanvas::getScaleFactor() {
+	return scaleFactor;
 }
 
 #ifdef OPENCV

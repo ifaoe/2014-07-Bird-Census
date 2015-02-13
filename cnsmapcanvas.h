@@ -78,6 +78,7 @@ public:
     QgsVectorLayer* rbCheckedVectorLayer();
     QListView* rbCheckedListView();
     int getMapMode();
+    double getScaleFactor();
     bool addEdtLyr(QString tbName, int tbIndex, QListView *tbListView);
 signals:
     
@@ -180,6 +181,8 @@ private:
     double dblCurCenterUtmY = 0;
 
     int mapMode = MAP_MODE_INSPECT;
+
+    double scaleFactor = 1.0;
 
     /** Tastaturhandler */
     bool keyCtrl  = false;

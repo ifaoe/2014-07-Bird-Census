@@ -243,8 +243,8 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
     // imgCanvas->doCalcWorldPos(config->imgTileWidth(), config->imgTileHeight(),
     //                           x1, y1);
     QgsRectangle r0(x0, y0, x1, y1);
-    double utmTileWidth  = r0.width();
-    double utmTileHeight = r0.height();
+    double utmTileWidth  = r0.width()*imgCanvas->getScaleFactor();
+    double utmTileHeight = r0.height()*imgCanvas->getScaleFactor();
     double ttlWidth = qgsImgEnvelope->extent().width();
     double ttlHeight = qgsImgEnvelope->extent().height();
     int numX = floor(ttlWidth/utmTileWidth);
