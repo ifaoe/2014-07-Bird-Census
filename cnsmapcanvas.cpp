@@ -183,8 +183,8 @@ void CnsMapCanvas::doCenter1by1(QgsPoint point) {
 void CnsMapCanvas::doCenter1by1(double x, double y) {
      int px, py;
      doCalcPixPos(QgsPoint(x,y),px,py);
-     int w2 = this->width()*scaleFactor;
-     int h2 = this->height()*scaleFactor;
+     int w2 = this->width()*scaleFactor/2;
+     int h2 = this->height()*scaleFactor/2;
      doCalcWorldPos(px-w2,py+h2,dblCurMinUtmX,dblCurMinUtmY);
      doCalcWorldPos(px+w2,py-h2,dblCurMaxUtmX,dblCurMaxUtmY);
      QgsRectangle rect(dblCurMinUtmX,
