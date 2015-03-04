@@ -105,16 +105,6 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
 
 }
 
-int Db::getGPSTrac(const QString cam, const QString image) {
-	QString qry = "SELECT gps_trc FROM sync_utm32 WHERE cam" + cam +"_id='" + image + "'";
-	QSqlQuery req(db);
-	if ( ! req.exec(qry) ) {
-//        out->error(req.lastError().text());
-		qDebug() << req.lastError().text();
-		return 0.0;
-	}
-}
-
 // -------------------------------------------------------
 // Many apriori assumptions for athmospheric data
 // precision good enough for now
@@ -130,7 +120,6 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     spa_data sdata;
     QString date, time;
     double cog = 0;
-    int trcc = req.size();
     while(req.next()) {
             sdata.longitude  = req.value(0).toDouble();
             sdata.latitude   = req.value(1).toDouble();
@@ -142,8 +131,6 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     time_struct tdata;
     tdata = boost::posix_time::to_tm(
                 boost::posix_time::time_from_string(date.toStdString() + " " + time.toStdString()));
-
-    std::cout << tdata.tm_hour << " " << tdata.tm_min << " " << tdata.tm_sec << endl;
 
     sdata.year     = tdata.tm_year + 1900;
     sdata.month    = tdata.tm_mon + 1;
@@ -176,7 +163,6 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     sdata.function         = SPA_ZA;
     spa_calculate( &sdata );
 
-    std::cout << sdata.azimuth << ' ' << cog << endl;
     double solar_dir = fmod(sdata.azimuth - cog, 360.0);
     if (solar_dir < 0) {
             return solar_dir + 360.0;
@@ -210,7 +196,6 @@ double Db::getTracAzimuth(const QString trc) {
 		tdata = boost::posix_time::to_tm(
 					boost::posix_time::time_from_string(date.toStdString() + " " + time.toStdString()));
 
-		std::cout << tdata.tm_hour << " " << tdata.tm_min << " " << tdata.tm_sec << endl;
 
 		sdata.year     = tdata.tm_year + 1900;
 		sdata.month    = tdata.tm_mon + 1;
@@ -255,13 +240,6 @@ double Db::getTracAzimuth(const QString trc) {
     	return solar_dir + 360;
     else
     	return solar_dir;
-//    std::cout << sdata.azimuth << ' ' << cog << endl;
-//    double solar_dir = fmod(sdata.azimuth - cog, 360.0);
-//    if (solar_dir < 0) {
-//            return solar_dir + 360.0;
-//    } else {
-//            return solar_dir;
-//    }
 }
 
 // --------------------------------------------------------

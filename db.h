@@ -123,8 +123,6 @@ public:
 
     project * getSessionParameters(QString session);
 
-    int getGPSTrac(const QString cam, const QString image);
-
 private:
     AppConfig *config;
     const char *sectionKey;
