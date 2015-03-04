@@ -105,6 +105,16 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
 
 }
 
+int Db::getGPSTrac(const QString cam, const QString image) {
+	QString qry = "SELECT gps_trc FROM sync_utm32 WHERE cam" + cam +"_id='" + image + "'";
+	QSqlQuery req(db);
+	if ( ! req.exec(qry) ) {
+//        out->error(req.lastError().text());
+		qDebug() << req.lastError().text();
+		return 0.0;
+	}
+}
+
 // -------------------------------------------------------
 // Many apriori assumptions for athmospheric data
 // precision good enough for now
@@ -120,16 +130,20 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     spa_data sdata;
     QString date, time;
     double cog = 0;
+    int trcc = req.size();
     while(req.next()) {
             sdata.longitude  = req.value(0).toDouble();
             sdata.latitude   = req.value(1).toDouble();
             cog =req.value(2).toDouble();
             date = req.value(3).toString();
             time = req.value(4).toString();
+
     }
     time_struct tdata;
-    tdata = boost::posix_time::to_tm( 
+    tdata = boost::posix_time::to_tm(
                 boost::posix_time::time_from_string(date.toStdString() + " " + time.toStdString()));
+
+    std::cout << tdata.tm_hour << " " << tdata.tm_min << " " << tdata.tm_sec << endl;
 
     sdata.year     = tdata.tm_year + 1900;
     sdata.month    = tdata.tm_mon + 1;
@@ -137,31 +151,32 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     sdata.hour     = tdata.tm_hour;
     sdata.minute   = tdata.tm_min;
     sdata.second   = tdata.tm_sec;
-        
+
     // bulletin: http://maia.usno.navy.mil/ser7/ser7.dat,
     // where delta_t = 32.184 + (TAI-UTC) + DUT1
     // TODO: get data from server
     sdata.delta_t  = 32.184 + 35. - 0.3;
-        
+
     // elevation: water level
     sdata.elevation= 0.;
-        
+
     // manual time zone
     // TODO: get timezone from meta data
     // WORKAROUND: take UTC
     sdata.timezone = 0;
-        
+
     // weather data
     // TODO: Get weatherdata from crawler
     sdata.pressure         = 1200;
     sdata.temperature      = 15;
     sdata.slope            = 0;
     sdata.azm_rotation     = 0;
-        
+
     sdata.atmos_refract    = 0.5667;
     sdata.function         = SPA_ZA;
     spa_calculate( &sdata );
-    
+
+    std::cout << sdata.azimuth << ' ' << cog << endl;
     double solar_dir = fmod(sdata.azimuth - cog, 360.0);
     if (solar_dir < 0) {
             return solar_dir + 360.0;
@@ -170,8 +185,87 @@ double Db::getSolarAzimuth(const QString cam, const QString image) {
     }
 }
 
+// -------------------------------------------------------
+// Many apriori assumptions for athmospheric data
+// precision good enough for now
+double Db::getTracAzimuth(const QString trc) {
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_SDATA);
+    QString resolv = q->query.arg(trc);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+//        out->error(req.lastError().text());
+    	qDebug() << req.lastError().text();
+        return 0.0;
+    }
+    spa_data sdata;
+    QString date, time;
+    double solar_dir = 0.0, cog = 0.0;
+    while(req.next()) {
+		sdata.longitude  = req.value(0).toDouble();
+		sdata.latitude   = req.value(1).toDouble();
+		cog =req.value(2).toDouble();
+		date = req.value(3).toString();
+		time = req.value(4).toString();
+		time_struct tdata;
+		tdata = boost::posix_time::to_tm(
+					boost::posix_time::time_from_string(date.toStdString() + " " + time.toStdString()));
+
+		std::cout << tdata.tm_hour << " " << tdata.tm_min << " " << tdata.tm_sec << endl;
+
+		sdata.year     = tdata.tm_year + 1900;
+		sdata.month    = tdata.tm_mon + 1;
+		sdata.day      = tdata.tm_mday;
+		sdata.hour     = tdata.tm_hour;
+		sdata.minute   = tdata.tm_min;
+		sdata.second   = tdata.tm_sec;
+
+		// bulletin: http://maia.usno.navy.mil/ser7/ser7.dat,
+		// where delta_t = 32.184 + (TAI-UTC) + DUT1
+		// TODO: get data from server
+		sdata.delta_t  = 32.184 + 35. - 0.3;
+
+		// elevation: water level
+		sdata.elevation= 0.;
+
+		// manual time zone
+		// TODO: get timezone from meta data
+		// WORKAROUND: take UTC
+		sdata.timezone = 0;
+
+		// weather data
+		// TODO: Get weatherdata from crawler
+		sdata.pressure         = 1200;
+		sdata.temperature      = 15;
+		sdata.slope            = 0;
+		sdata.azm_rotation     = 0;
+
+		sdata.atmos_refract    = 0.5667;
+		sdata.function         = SPA_ZA;
+		spa_calculate( &sdata );
+
+		double tmp_dir = fmod(sdata.azimuth - cog, 360.0);
+		if (tmp_dir < 0)
+			tmp_dir += 360.0;
+		if (tmp_dir > 180.0)
+			tmp_dir -= 360.0;
+		solar_dir += tmp_dir;
+    }
+    solar_dir /= double(req.size());
+    if (solar_dir < 0)
+    	return solar_dir + 360;
+    else
+    	return solar_dir;
+//    std::cout << sdata.azimuth << ' ' << cog << endl;
+//    double solar_dir = fmod(sdata.azimuth - cog, 360.0);
+//    if (solar_dir < 0) {
+//            return solar_dir + 360.0;
+//    } else {
+//            return solar_dir;
+//    }
+}
+
 // --------------------------------------------------------
-bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
+int Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
     QString arg_name, arg_value, sync_id;
     sync_id = QString::number(*sync_int);
     if ( *sync_int == 0 ) {
@@ -192,15 +286,15 @@ bool Db::readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img) {
     if ( ! req.exec(resolv) ) {
 //        out->error(req.lastError().text());
         qDebug() << req.lastError().text();
-        return false;
+        return -1;
     }
     while (req.next()) {
         *sync_int = req.value(0).toInt();
         *cam1_img = req.value(1).toString();
         *cam2_img = req.value(2).toString();
-        return true;
+        return req.value(3).toInt();
     }
-    return false;
+    return -1;
 }
 
 // -------------------------------------------------------

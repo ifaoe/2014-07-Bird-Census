@@ -5,7 +5,7 @@
 QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string) 
 {
     QgsGeometry *temp_geo_1, *temp_geo_2, *resultgeom;
-    double solar_dir = db->getSolarAzimuth(cam, image_string);
+//    double solar_dir = db->getSolarAzimuth(cam, image_string);
     QString c1_str, c2_str;
     const QString c1 = QString::fromStdString("1");
     const QString c2 = QString::fromStdString("2");
@@ -20,7 +20,8 @@ QgsGeometry * validPolyGeometry(Db * db, QString cam, QString image_string)
             resultgeom = db->readImageEnvelope(c2,c2_str);
     }
 
-    db->readIdMapping( &sync_id, &c1_str, &c2_str );
+    int trc = db->readIdMapping( &sync_id, &c1_str, &c2_str );
+    double solar_dir = db->getTracAzimuth(QString::number(trc));
     int nsync_id = sync_id+1;
     int ssync_id = sync_id-1;
 
