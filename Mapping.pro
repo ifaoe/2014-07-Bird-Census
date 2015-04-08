@@ -19,31 +19,24 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += main.cpp\
     mainwindow.cpp \
     cnsmapcanvas.cpp \
-    textlogger.cpp \
     appconfig.cpp \
-    sqlquery.cpp \
     db.cpp \
     defs.cpp \
     imagetile.cpp \
     ovrmapcanvas.cpp \
     geometrycalc.cpp \
     spa/spa.c \
-    sessionselector.cpp \
-    layerstack.cpp
+    qt_debug.hpp
 
 HEADERS  += mainwindow.h \
     cnsmapcanvas.h \
-    textlogger.h \
     appconfig.h \
-    sqlquery.h \
     db.h \
     defs.h \
     imagetile.h \
     ovrmapcanvas.h \
     geometrycalc.h \
-    spa/spa.h \
-    sessionselector.h \
-    layerstack.h
+    spa/spa.h 
 
 FORMS    += mainwindow.ui \
 	sessionselector.ui

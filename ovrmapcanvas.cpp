@@ -12,7 +12,6 @@ OvrMapCanvas::OvrMapCanvas(QWidget *parent,
   ui(aUI), config(aConfig), db(aDB), imgCanvas(aImgCanvas),
   qgsLyrRegistry(lyrRegistry) {
 
-    out = new TextLogger(this, ui->txtLogger, ui->statusBar);
 
 //    useImageToRender(true); //deprecated
     enableAntiAliasing(true);
@@ -49,7 +48,7 @@ void OvrMapCanvas::doSelectNextTile() {
             int rawImgID = -1;
             QString rawImgTmWhen = "";
             QString rawImgTmSeen = "";
-            db->readRawImage(config->prjUtmSector(),ui->lblCurCam->text(), ui->lblCurImage->text(),
+            db->readRawImage(config->prjUtmSector(),config->curCam, config->curImg,
                              config->appUser(), config->prjSession(),
                              rawImgID, rawImgTmWhen, rawImgTmSeen);
             db->writeImageDone(1, rawImgID);
@@ -85,8 +84,7 @@ bool OvrMapCanvas:: saveRawTile(bool insert) {
       return db->writeRawImageTile(false,
                         rawImgTileID,
                         config->prjUtmSector(),
-                        ui->lblCurCam->text(),
-                        ui->lblCurImage->text(),
+						config->curCam, config->curImg,
                         config->appUser(),
                         config->prjSession(),
                         rawImgTileUX+" "+tmUX,
@@ -97,8 +95,7 @@ bool OvrMapCanvas:: saveRawTile(bool insert) {
                         rawImgTileTmSeen+" "+tmSeen);
     } else {
       return  db->writeRawImageTile(true,rawImgTileID, config->prjUtmSector(),
-                          ui->lblCurCam->text(),
-                          ui->lblCurImage->text(),
+    		  	  	  	  config->curCam, config->curImg,
                           config->appUser(),
                           config->prjSession(),
                           "",
@@ -112,10 +109,10 @@ bool OvrMapCanvas:: saveRawTile(bool insert) {
 }
 // ----------------------------------------------------------------------
 bool OvrMapCanvas:: readRawTile() {
+	// TODO: TODO: TODO: CLEANUP
     // Datensatz verfuegbar?
     if (!db->readRawImageTile(config->prjUtmSector(),
-                          ui->lblCurCam->text(),
-                          ui->lblCurImage->text(),
+    						config->curCam, config->curImg,
                           config->appUser(),
                           config->prjSession(),
                           rawImgTileID, rawImgTileUX, rawImgTileUY,
@@ -129,9 +126,7 @@ bool OvrMapCanvas:: readRawTile() {
         done = saveRawTile(true)
                &&
                db->readRawImageTile(config->prjUtmSector(),
-                                    ui->lblCurCam->text(),
-                                    ui->lblCurImage->text(),
-
+            		   	   	   	   	   	 config->curCam, config->curImg,
                                          config->appUser(), config->prjSession(),
                                          rawImgTileID, rawImgTileUX, rawImgTileUY,
                                          rawImgTileW, rawImgTileH,
@@ -354,11 +349,6 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
     lab->setLabelField(QgsLabel::Text, 1);
     labAttr->setColor(Qt::yellow);
     qgsImgEnvelope->enableLabels(false);
-    if (!done) {
-        out->error("NO STYLE ENVELOPE");
-    } else {
-        out->log("STYLE ENVELOPE");
-    }
     qgsLyrRegistry->addMapLayer(qgsImgEnvelope);
     QgsRectangle rect = qgsImgEnvelope->extent();
     rect.setXMinimum(rect.xMinimum()-10);

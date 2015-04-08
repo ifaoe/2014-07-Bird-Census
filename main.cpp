@@ -3,7 +3,6 @@
 #include "mainwindow.h"
 #include "defs.h"
 #include "appconfig.h"
-#include "sessionselector.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,9 +16,6 @@ int main(int argc, char *argv[])
     Db * db = new Db(config);
     db->initConfig();
 
-    SessionSelector * dialog = new SessionSelector(db, config);
-    dialog->exec();
-    delete dialog;
     // Qgis Pfad setzen und Provider laden
     QgsApplication::setPrefixPath(config->qgsPrefixPath(), true);
     QgsApplication::initQgis();

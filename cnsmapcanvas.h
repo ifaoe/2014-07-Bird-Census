@@ -36,11 +36,9 @@
 #include <qgsvectorlayer.h>
 #include <qgsvectordataprovider.h>
 #include <opencv2/core/core.hpp>
-#include "textlogger.h"
 #include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
-#include "layerstack.h"
 
 class OvrMapCanvas;
 
@@ -76,10 +74,10 @@ public:
     bool doSaveData(QString cam, QString file);
     void setOvrCanvas(OvrMapCanvas* ovrCvs);
     QgsVectorLayer* rbCheckedVectorLayer();
-    QListView* rbCheckedListView();
     int getMapMode();
     double getScaleFactor();
-    bool addEdtLyr(QString tbName, int tbIndex, QListView *tbListView);
+    bool removeSelection();
+
 signals:
     
 public slots:
@@ -91,14 +89,13 @@ public slots:
     void doModePan();
     void doModeDigitize();
     void doModeSelect();
-    bool doSaveData();
     void doCanvasClicked(const QgsPoint &point, Qt::MouseButton button);
     bool doHandleCoords(const  QgsPoint &point );
     void doHandleKeyPressed(QKeyEvent* keyEvent);
     void doHandleKeyReleased(QKeyEvent* keyEvent);
     void doUpdateStatus();
 
-    QgsMapLayer* layerByKey(QString key);
+    QgsVectorLayer* layerByKey(QString key);
 
 #ifdef OPENCV
     int mapImg2CV(const QgsPoint &point, double radius, int width, int height);
@@ -113,10 +110,8 @@ private:
     QgsMapLayerRegistry* qgsLyrRegistry = 0;
     OvrMapCanvas* ovrCanvas;
 
-    LayerStack* mapLayerStack;
-    QMap<int, QgsVectorLayer*> edtLayers;
-    QMap<int, QListView*> edtViews;
-    QMap<int, QString> edtKeys;
+    QString curCam = "";
+    QString curImg = "";
 
     int rawImgID = -1;
     QString rawImgTmWhen = "";
@@ -130,7 +125,7 @@ private:
     double dblMapCursorUtmY = 0.0;
 
     /** Kartencursor Latitude */
-    double dbMapCursorLatitude = 0;
+    double dblMapCursorLatitude = 0;
 
     /** Kartencursor Longitude */
     double dblMapCursorLongitude = 0;
@@ -188,7 +183,6 @@ private:
     bool keyCtrl  = false;
     bool keyAlt   = false;
     bool keyShift = false;
-    TextLogger* out = 0;
 
     /** Karten Objekte */
 #ifdef OPENCV
@@ -206,6 +200,7 @@ private:
     QgsVectorLayer* qgsPolyLayer = 0;
     QgsRasterLayer* qgsImgLayer = 0 ;
     QgsRasterDataProvider* qgsImgProvider = 0;
+    QgsMapLayerRegistry * qgsLayerRegistry;
 
     //QList<QgsMapCanvasLayer> qgsLayerList;
     QgsCoordinateReferenceSystem crs4326;
@@ -236,10 +231,11 @@ private:
                        const QString strCam,
                        const QString strFile,
                        const QString lyrKey,
-                       const int lyrId,
-                       QgsVectorLayer *layer);
+                       QgsVectorLayer * layer);
 
     bool saveData(QString cam, QString file);
+
+    bool refreshLayerSet();
 };
 
 #endif // CNSMAPCANVAS_H

@@ -77,6 +77,15 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     readQuint16(image, "greenMax",  qui16ImgMaxGreen, 3, "Maximaler Wert gruener Kanal", true);
     readQuint16(image, "tileWidth",  qui16ImgTileWidth, 800, "Breite der Image Tiles", true);
     readQuint16(image, "tileHeight",  qui16ImgTileHeight, 800, "Hoehe der Image Tiles", true);
+
+    edtLayers = new QMap<QString, QgsVectorLayer*>;
+    edtLayers->insert("VF",0);
+    edtLayers->insert("VS",0);
+    edtLayers->insert("MM",0);
+    edtLayers->insert("UO",0);
+    edtLayers->insert("SN",0);
+    edtLayers->insert("WV",0);
+
 }
 
 // -------------------------------------------------------------------------
@@ -154,19 +163,19 @@ void AppConfig::readQueries() {
         readQString(set, "query", query, TK_QSTR_NONE, HELP_TMPL, true);
         readQString(set, "help", desc, TK_QSTR_NONE, HELP_DESC, true);
         replacePrjSettings(query);
-        replacePrjSettings(desc);
-        sqlQueries.insert(key, new SqlQuery(query,desc));
     }
 }
 
 // -------------------------------------------------------------------------
-void AppConfig::replacePrjSettings(QString &src) {
+QString AppConfig::replacePrjSettings(const QString str) {
     QString prj = QString::number(prjUtmSector());
+    QString src = str;
     src.replace("$(utmSector)",prj);
     src.replace("$(path)",prjPath());
     src.replace("$(session)",prjSession());
     src.replace("$(flight)",prjFlight());
     src.replace("$(filter)",prjFilter());
+    return src;
 }
 
 
@@ -231,17 +240,6 @@ void AppConfig::readQuint16(const Setting& section, const char* key,
     qint32 aInt;
     readInteger( section, key, aInt, defValue, help, mandatory);
     result = qBound(0,aInt,65535);
-}
-
-
-
-// -------------------------------------------------------------------------
-SqlQuery* AppConfig::getSqlQuery(QString key) const {
-
-    if ( ! sqlQueries.contains(key) ) {
-        qFatal(ACFG_ERR_MISSING_QUERY, key.toStdString().c_str());
-    }
-    return (sqlQueries.value(key));
 }
 
 QStringList AppConfig::getAdmins() const {

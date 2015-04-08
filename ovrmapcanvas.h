@@ -14,7 +14,6 @@
 #include <qgsmaptool.h>
 #include <qgsmaptoolemitpoint.h>
 #include <opencv2/core/core.hpp>
-#include "textlogger.h"
 #include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
@@ -51,7 +50,6 @@ class OvrMapCanvas : public QgsMapCanvas
         const AppConfig* config;
         Db* db;
         CnsMapCanvas* imgCanvas;
-        TextLogger* out = 0;
 
         int rawImgTileID = -1;
         QString rawImgTileTmWhen = "";

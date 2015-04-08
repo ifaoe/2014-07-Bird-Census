@@ -12,7 +12,6 @@
 #include "appconfig.h"
 #include "ovrmapcanvas.h"
 #include "cnsmapcanvas.h"
-#include "textlogger.h"
 #include "db.h"
 
 
@@ -29,37 +28,28 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(const AppConfig *aConfig, Db * aDb);
+    explicit MainWindow(AppConfig *aConfig, Db * aDb);
     ~MainWindow();
-
     
 private:
-    const AppConfig *config;
+    AppConfig *config;
     Ui::MainWindow *ui = 0;
-    TextLogger *logger = 0;
-    TextLogger *dbText = 0;
     Db *db = 0;
     QgsProviderRegistry *qgsPvrRegistry = 0;
     QgsMapLayerRegistry *qgsLyrRegistry = 0;
 
     QItemSelectionModel *imgSelector= 0;
-    QItemSelectionModel *vsSelector= 0;
-    QItemSelectionModel *vfSelector= 0;
-    QItemSelectionModel *uoSelector= 0;
-    QItemSelectionModel *snSelector= 0;
-    QItemSelectionModel *wvSelector= 0;
-    QItemSelectionModel *mmSelector= 0;
+    QItemSelectionModel *objSelector= 0;
 
-    QStringList edtCurItems;
-    QString edtCurPkStr = TK_QSTR_NONE;
+    QString selFile = "";
+    QString selCam = "";
+    QString curCam = "";
+    QString curFile = "";
+
     QString edtCurKey  = TK_QSTR_NONE;
-    int edtCurPk = -1;
     QString edtCurView = TK_QSTR_NONE;
-//    QListView* edtViews[6];
     QString edtKey[6];
-    QMap<int, QListView*> edtViews;
     QMap<int, QString> edtKeys;
-    QMap<int, QRadioButton*> edtButtons;
 
     bool keyMarkerHide = false;
 
@@ -67,6 +57,8 @@ private:
     OvrMapCanvas *ovrCanvas = 0;
     void qgsCheckProviders();
     void guiInitAdditionals();
+    bool checkButtonByKey(QString tp);
+    void initSessionFrame();
 
 signals:
 
@@ -76,20 +68,14 @@ public slots:
     void clearSelection();
     void deleteSelection();
     void rbToggledType();
-    void changeEdit(int index);
     void imgUpdateSelection(QItemSelection selected, QItemSelection deselected);
-    void vsUpdateSelection(QItemSelection selected, QItemSelection deselected);
-    void vfUpdateSelection(QItemSelection selected, QItemSelection deselected);
-    void uoUpdateSelection(QItemSelection selected, QItemSelection deselected);
-    void mmUpdateSelection(QItemSelection selected, QItemSelection deselected);
-    void wvUpdateSelection(QItemSelection selected, QItemSelection deselected);
-    void snUpdateSelection(QItemSelection selected, QItemSelection deselected);
+    void objUpdateSelection();
     void hideMarker(bool checked);
+    void handleSessionSelection();
+    void handleCamSelection();
+    void handleTrcSelection();
 private:
     QSqlQueryModel* sqlImgModel = 0;
-    void edtUpdateSelection(QListView* lst,
-                            QItemSelection selected, QItemSelection deselected);
-    bool addEdtTbx(QString tbName, int tbIndex, QRadioButton * tbButton, QListView * tbListView);
 };
 
 #endif // MAINWINDOW_H

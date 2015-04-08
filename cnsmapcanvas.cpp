@@ -1,8 +1,21 @@
 #include "cnsmapcanvas.h"
 #include "ovrmapcanvas.h"
 #include "geometrycalc.h"
+#include "ui_functions.h"
+#include "mainwindow.h"
 #include <qgsgeometry.h>
 
+void qDebug(QString text) {
+	qDebug() << text;
+}
+
+void qWarning(QString text) {
+	qWarning(text.toStdString().c_str());
+}
+
+void qCritical(QString text) {
+	qCritical(text.toStdString().c_str());
+}
 
 CnsMapCanvas::CnsMapCanvas(QWidget *parent,
                            Ui::MainWindow *aUI,
@@ -12,9 +25,6 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     QgsMapCanvas(parent),
     ui(aUI), config(aConfig), db(aDB), qgsLyrRegistry(lyrRegistry)
 {
-
-    out = new TextLogger(this, ui->txtLogger, ui->statusBar);
-
     // Initialize MapCanvas
     enableAntiAliasing(true);
     setParallelRenderingEnabled( true );
@@ -79,6 +89,7 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     //ui->btnMapZoomIn->addAction(qtActZoomIn);
     //ui->btnMapZoomIn->addAction(qtActZoomOut);
 
+
     // Initialisierung des ImageLayer der Karte
     qgsImgLayer    = 0;
     qgsImgProvider = 0;
@@ -87,14 +98,7 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     crs4326 = QgsCoordinateReferenceSystem(4326);
     setMapUnits(QGis::Meters);
 
-    mapLayerStack = new LayerStack(this, qgsLyrRegistry);
-}
-
-bool CnsMapCanvas::addEdtLyr(QString tbName, int tbIndex, QListView *tbListView) {
-	edtKeys[tbIndex] = tbName;
-	edtViews[tbIndex] = tbListView;
-	edtLayers[tbIndex] = NULL;
-	return true;
+    qgsLayerRegistry = QgsMapLayerRegistry::instance();
 }
 
 // --------------------------------------------------------------------------
@@ -122,7 +126,7 @@ void CnsMapCanvas::doZoomIn() {
 /** @brief CnsMapCanvas::doZoomExtent() auf gesamten Kartenausschnitt zoomen */
 void CnsMapCanvas::doZoomExtent(){
     if (!qgsImgLayer) return;
-    out->log(tr("ZOOM GANZE KARTE"));
+    qDebug() << tr("ZOOM GANZE KARTE");
     this->setExtent(qgsImgLayer->extent());
     this->refresh();
 }
@@ -130,7 +134,7 @@ void CnsMapCanvas::doZoomExtent(){
 // --------------------------------------------------------------------------
 /** @brief CnsMapCanvas::doZoom1by1 auf 1:1 Maszstab zoomen */
 void CnsMapCanvas::doZoom1by1() {
-    if (out) out->log(tr("ZOOM 1:1"));
+	qDebug() << tr("ZOOM 1:1");
     doCenter1by1(dblCurCenterUtmX, dblCurCenterUtmY);
 }
 
@@ -139,7 +143,7 @@ void CnsMapCanvas::doZoom1by1() {
  * @brief MainWindow::doModePan In den Pan Modus wechseln
  */
 void CnsMapCanvas::doModePan() {
-    out->log(tr("set MapMode PAN"));
+	qDebug() << tr("set MapMode PAN");
     mapMode = MAP_MODE_INSPECT;
     setMapTool(qgsToolPan);
 }
@@ -149,7 +153,8 @@ void CnsMapCanvas::doModePan() {
  * @brief CnsMapCanvas::doModeDigitize() In den Digitalisierungsmodus wechseln
  */
 void CnsMapCanvas::doModeDigitize() {
-    out->log(tr("MODUS ERFASSUNG"));
+	ui->tbwObjects->selectionModel()->clearSelection();
+	qDebug() << tr("MODUS ERFASSUNG");
     mapMode = MAP_MODE_DIGITIZE;
     setMapTool(qgsToolPoint);
 
@@ -159,10 +164,11 @@ void CnsMapCanvas::doModeDigitize() {
  * @brief CnsMapCanvas::doModeSelect Punkte selektieren und inzpizieren
  */
 void CnsMapCanvas::doModeSelect() {
-      out->log(tr("MODUS AUSWAHL"));
-      mapMode = MAP_MODE_SELECT;
-      setMapTool(qgsToolPoint);
-      this->setCursor(Qt::ArrowCursor);
+	ui->tbwObjects->selectionModel()->clearSelection();
+	qDebug() << tr("MODUS AUSWAHL");
+	mapMode = MAP_MODE_SELECT;
+	setMapTool(qgsToolPoint);
+	this->setCursor(Qt::ArrowCursor);
 }
 
 // --------------------------------------------------------------------------
@@ -223,14 +229,6 @@ void CnsMapCanvas::doUpdateStatus() {
     dblCurMaxUtmY = extent().yMaximum();
     dblCurCenterUtmX = extent().center().x();
     dblCurCenterUtmY = extent().center().y();
-    /*
-    int px,py;
-    if (doCalcPixPos(QgsPoint(cx,cy),px,py)) {
-      ui->lblPos->setText(str.sprintf("Kachel: %d %d", px, py));
-    } else {
-      ui->lblPos->setText("Kachel: -----");
-    }
-   */
     if ( (intMapCursorPixelCol < 0) || (intMapCursorPixelRow < 0) ) {
         ui->lblPixel->setText("Position ------ -----");
     } else {
@@ -253,11 +251,11 @@ void CnsMapCanvas::doUpdateStatus() {
 void CnsMapCanvas::doHandleKeyPressed(QKeyEvent *keyEvent) {
     if (keyEvent->key() == Qt::Key_Control) {
         keyCtrl = true;
-        out->log("MCVS KEY COMMAND MODE ON");
+        qDebug() << "MCVS KEY COMMAND MODE ON";
     }
     if (keyEvent->key() == Qt::Key_Shift) {
         keyShift = true;
-        out->log("MCVS KEY SHIFT MODE ON");
+        qDebug() << "MCVS KEY SHIFT MODE ON";
     }
 }
 
@@ -265,11 +263,11 @@ void CnsMapCanvas::doHandleKeyPressed(QKeyEvent *keyEvent) {
 void CnsMapCanvas::doHandleKeyReleased(QKeyEvent *keyEvent) {
     if (keyEvent->key() == Qt::Key_Control) {
         keyCtrl = false;
-        out->log("MCVS KEY COMMAND MODE OFF");
+        qDebug() << "MCVS KEY COMMAND MODE OFF";
     }
     if (keyEvent->key() == Qt::Key_Shift) {
         keyShift = false;
-        out->log("MCVS KEY SHIFT MODE OF");
+        qDebug() << "MCVS KEY SHIFT MODE OF";
     }
     if (keyEvent->key() == Qt::Key_Space && !keyShift) {
         ovrCanvas->doSelectNextTile();
@@ -295,7 +293,7 @@ bool CnsMapCanvas::doHandleCoords(const QgsPoint &point) {
     if (!qgsImgLayer) return false;
     if ( doCalcPixPos(point, intMapCursorPixelCol, intMapCursorPixelRow) ) {
       dblMapCursorUtmX = point.x(); dblMapCursorUtmY = point.y();
-      doCalcLonLat(point,dblMapCursorLongitude,dbMapCursorLatitude);
+      doCalcLonLat(point,dblMapCursorLongitude,dblMapCursorLatitude);
       doUpdateStatus();
     }
     return true;
@@ -333,21 +331,17 @@ bool CnsMapCanvas::doCalcWorldPos(const int pixX ,const int pixY,
 
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
-	QMap<int, QgsVectorLayer*>::iterator i;
-	for(i=edtLayers.begin(); i!=edtLayers.end(); ++i) {
-		i.value() =
-				openEditLayer(config->prjPath(), cam, file, edtKeys[i.key()], i.key(), i.value());
+	for(auto it = config->edtLayers->begin(); it!=config->edtLayers->end(); ++it) {
+		config->edtLayers->insert(it.key(),
+				openEditLayer(config->prjPath(), cam, file, it.key(), it.value()));
 	}
     bool enod = openPolyLayer(cam, file);
     bool done = openRasterLayer(config->prjPath(), cam, file);
 
+    refreshLayerSet();
     return done && enod;
 }
-// --------------------------------------------------------------------------
-bool CnsMapCanvas::doSaveData() {
-    doSaveData(ui->lblCurCam->text(),ui->lblCurImage->text());
-    return true;
-}
+
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doSaveData(QString cam, QString file) {
     return saveData(cam, file);
@@ -364,27 +358,16 @@ bool CnsMapCanvas::saveData(const QString cam, const QString file) {
     db->writeRawImage(false,rawImgID, config->prjUtmSector(), cam, file,
                       config->appUser(), config->prjSession(),
                       rawImgTmWhen+" "+tmWhen, rawImgTmSeen+" "+tmSeen);
-
-    QMap<int, QString>::iterator i;
-    for (i = edtKeys.begin(); i!=edtKeys.end(); ++i) {
-        QStringListModel* model = qobject_cast<QStringListModel*>(edtViews[i.key()]->model());
-        db->writeRawCensus(model,i.value(),config->prjUtmSector(), cam, file,
-                           config->appUser(), config->prjSession());
-    }
     return true;
 }
 
 // --------------------------------------------------------------------------
-QgsMapLayer* CnsMapCanvas::layerByKey(QString key) {
-    return mapLayerStack->getMapLayer(key);
+QgsVectorLayer* CnsMapCanvas::layerByKey(QString key) {
+    return config->edtLayers->value(key);
 }
 // --------------------------------------------------------------------------
 QgsVectorLayer* CnsMapCanvas::rbCheckedVectorLayer() {
-	return edtLayers[ui->btgLayers->checkedId()];
-}
-// --------------------------------------------------------------------------
-QListView* CnsMapCanvas::rbCheckedListView() {
-	return edtViews[ui->btgLayers->checkedId()];
+	return config->edtLayers->value(ui->btgLayers->checkedButton()->property("dbvalue").toString());
 }
 
 // --------------------------------------------------------------------------
@@ -408,76 +391,67 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
                                   Qt::MouseButton button) {
     if (!(qgsImgLayer && qgsImgProvider) ) return;
 
-    QgsVectorLayer* layer = rbCheckedVectorLayer();
-    QListView* list = rbCheckedListView();
-    if ( !layer) return;
-    if ( !list ) return;
-    QStringListModel* model = qobject_cast<QStringListModel*>(list->model());
-
-
     if ( !(doHandleCoords(point) && button == Qt::LeftButton) ) return;
 
-    /*
-    QString str; str.sprintf("COORD %f %f PIX %d %d",
-                  point.x(), point.y(),
-                  intMapCursorPixelCol, intMapCursorPixelRow
-                  );
-    if (out) out->log(str);
-    */
+    if (mapMode ==  MAP_MODE_DIGITIZE ) {
+        QgsVectorLayer* layer = rbCheckedVectorLayer();
+        if ( !layer) return;
 
-    if (layer && mapMode ==  MAP_MODE_DIGITIZE ) {
-        bool done = false;
         QString lyrName = layer->name();
         QString usrName = config->appUser();
-        QgsFeature fet = QgsFeature(layer->dataProvider()->fields());
-        fet.setGeometry( QgsGeometry::fromPoint(QgsPoint(point)));
-        int ix = nextFeatureId(layer);
-        fet.setFeatureId(ix);
-        done = fet.setAttribute("SID",-1);
-        done = fet.setAttribute("TP",lyrName);
-        done = fet.setAttribute("PX",intMapCursorPixelCol);
-        done = fet.setAttribute("PY",intMapCursorPixelRow);
-        done = fet.setAttribute("UX",dblMapCursorUtmX);
-        done = fet.setAttribute("UY",dblMapCursorUtmY);
-        done = fet.setAttribute("LX",dblMapCursorLongitude);
-        done = fet.setAttribute("LY",dbMapCursorLatitude);
-        layer->startEditing();
-        layer->addFeature(fet,true);
-        layer->commitChanges();
+
+        int px, py;
+        doCalcPixPos(point, px, py);
+        double lon, lat;
+        doCalcLonLat(point, lon, lat);
+        double ux, uy;
+        ux = point.x();
+        uy = point.y();
+
+        db->writeRawCensus(lyrName,config->prjUtmSector(), curCam , curImg, config->appUser(),
+        		config->prjSession(),
+				QString::number(py), QString::number(px),
+				QString::number(ux, 'g', 15), QString::number(uy, 'g', 15),
+				QString::number(lon, 'g', 15), QString::number(lat, 'g', 15));
 
         QString lstr;
         lstr.sprintf(FMT_CNS_LIST,
                       qPrintable(lyrName),
                       intMapCursorPixelCol, intMapCursorPixelRow,
                       dblMapCursorUtmX, dblMapCursorUtmY,
-                      dblMapCursorLongitude, dbMapCursorLatitude, -1, ix);
+                      dblMapCursorLongitude, dblMapCursorLatitude, -1, 0);
 
-        model->insertRow(model->rowCount());
-        QModelIndex index = model->index(model->rowCount()-1);
-        model->setData(index, lstr);
-
-        if (done) out->log("..Feature "
-                           +layer->name()
-                           +QString::number(layer->featureCount()));
-        else out->log("..Feature not done "+layer->name());
+        qDebug() << lstr;
+        db->readRawCensus(ui->tbwObjects, curCam, curImg, config->appUser());
 //        this->refresh();
 
-    } else if (layer && mapMode ==  MAP_MODE_SELECT )  {
-         QgsFeatureIterator iter=layer->getFeatures();
-         QgsFeature fet;
+    } else if (mapMode ==  MAP_MODE_SELECT )  {
+
          double min = 1E6; double dist =0;
-         QgsFeatureId ix =-1;
-         while (iter.nextFeature(fet)) {
-             QgsPoint fPoint = fet.geometry()->asPoint();
-             dist = sqrt(fPoint.sqrDist(point));
-             if (min>dist && dist<=SELECT_DIST) {
-                 min = dist;
-                 ix = fet.id();
+         int id =-1;
+         for (auto it = config->edtLayers->begin(); it!=config->edtLayers->end(); ++it) {
+        	 QgsFeature fet(it.value()->dataProvider()->fields());
+        	 QgsFeatureIterator iter=it.value()->getFeatures();
+             while (iter.nextFeature(fet)) {
+
+                 QgsPoint fPoint = fet.geometry()->asPoint();
+                 dist = sqrt(fPoint.sqrDist(point));
+                 if (min>dist && dist<=SELECT_DIST) {
+                     min = dist;
+                     id = fet.attribute("SID").toInt();
+                 }
              }
          }
-         if (ix>=0) layer->select(ix);
-         QModelIndex index = model->index( ix-1);
-         list->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+
+         if (id>=0) {
+        	 removeSelection();
+			 for (int i=0; i<ui->tbwObjects->rowCount(); i++){
+				 if (ui->tbwObjects->item(i,0)->text().toInt() == id) {
+					 ui->tbwObjects->selectRow(i);
+					 break;
+				 }
+			 }
+         }
     }
     doUpdateStatus();
 
@@ -489,24 +463,30 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
                                    const QString strCam,
                                    const QString strFile,
                                    const QString lyrKey,
-                                   const int lyrId,
-                                   QgsVectorLayer *layer) {
+                                   QgsVectorLayer * layer) {
 	Q_UNUSED(imagePath);
-    if ( layer ) {
-         QString id = layer->id();
-         mapLayerStack->removeMapLayer(lyrKey);
-    }
 
+	if (layer != 0) {
+		qgsLyrRegistry->removeMapLayer(lyrKey);
+//		delete layer;
+		layer = 0;
+	}
+
+
+    curCam = strCam;
+    curImg = strFile;
 
     QString props = QString("Point?")+
                     QString("crs=epsg:326")+
                     QString::number(config->prjUtmSector());
 
     layer = new QgsVectorLayer(props, lyrKey, "memory");
+
+
     if ( layer->isValid() ) {
-        out->log(tr("editLayer OPEN ")+" "+lyrKey+" "+strFile);
+    	qDebug() << tr("editLayer OPEN ")+" "+lyrKey+" "+strFile;
     } else {
-        out->error(tr("editLayer OPEN FAILED ")+" "+lyrKey+" "+strFile);
+        qWarning(tr("editLayer OPEN FAILED ")+" "+lyrKey+" "+strFile);
         return 0;
     }
 
@@ -521,20 +501,17 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
     fields.append(QgsField("LY", QVariant::Double,  "ly"));
 
     layer->dataProvider()->addAttributes(fields);
-    out->log("editLayer PROVIDER.NAME "+layer->dataProvider()->name());
-    out->log("editLayer PROVIDER.CAPS "+layer->dataProvider()->capabilitiesString());
+    qDebug() << "editLayer PROVIDER.NAME "+layer->dataProvider()->name();
+    qDebug() << "editLayer PROVIDER.CAPS "+layer->dataProvider()->capabilitiesString();
 
-    QListView* listView = edtViews[lyrId];
-    QStringListModel* model = qobject_cast<QStringListModel*>(listView->model());
-    QString usr = config->appUser(); int dummy;
-    db->readRawCensus(model, layer, strCam, strFile, usr, dummy);
+    QString usr = config->appUser();
 
     bool done = false;
     layer->loadSldStyle(config->symbolFileSld(lyrKey),done);
     if (!done) {
-        out->error("NO STYLE");
+        qWarning("NO STYLE");
     }
-    mapLayerStack->addMapLayer(lyrKey, layer, lyrId);
+
     return layer;
  }
 
@@ -542,8 +519,9 @@ QgsVectorLayer *CnsMapCanvas::openEditLayer(
 bool CnsMapCanvas::openRasterLayer(const QString imagePath,
                                    const QString strCam,
                                    const QString strFile) {
-    if ( qgsImgLayer ) {
-         mapLayerStack->removeMapLayer("raster");
+    if ( qgsImgLayer!=0 ) {
+    	qgsLayerRegistry->removeMapLayer(qgsImgLayer->id());
+//         delete qgsImgLayer;
          qgsImgLayer = 0;
      }
 
@@ -551,39 +529,27 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
     QString file =imagePath+"cam"+strCam+"/geo/"+strFile+".tif";
     QFileInfo info (file);
     if ( !info.isFile() || !info.isReadable() ) {
-        out->error(tr("rasterLayer invalid file  ")+file);
+        qCritical("rasterLayer invalid file  "+file);
         return false;
     }
     QString basePath = info.filePath();
     QString baseName = info.fileName();
-    out->log(tr("rasterLayer BASE.PATH ") + basePath);
-    out->log(tr("rasterLayer BASE.NAME ") + baseName);
+    qDebug() << tr("rasterLayer BASE.PATH ") + basePath;
+    qDebug() << tr("rasterLayer BASE.NAME ") + baseName;
 
     qgsImgLayer = new QgsRasterLayer(basePath,baseName);
 
     if ( qgsImgLayer->isValid() ) {
-        out->log(tr("rasterLayer OPEN ")+file);
+        qDebug() << tr("rasterLayer OPEN ")+file;
     } else {
-        out->error(tr("rasterLayer OPEN FAILED ")+file);
+        qCritical("rasterLayer OPEN FAILED "+file);
         return false;
     }
 
     qgsImgProvider = qgsImgLayer->dataProvider();
-    /** PROOF OF CONCEPT
-    QString props = QString("Point?")+
-                    QString("crs=epsg:326")+
-                    QString::number(config->prjUtmSector());
-    qgsImgEnvelope = db->readImageEnvelope(strCam, strFile, qgsImgEnvelope);
-    QgsRectangle extR = qgsImgEnvelope->boundingBox();
-    QgsRectangle extI = qgsImgProvider->extent();
-    if (extR.intersects(extI)) {
-      out->log("OK Envelope passt!");
-    } else {
-      out->log("OK Envelope passt nicht!");
-    }
-    */
-    out->log("rasterLayer PROVIDER.NAME "+qgsImgProvider->name());
-    out->log("rasterLayer PROVIDER.CAPS "+qgsImgProvider->capabilitiesString());
+
+    qDebug() << "rasterLayer PROVIDER.NAME "+qgsImgProvider->name();
+    qDebug() << "rasterLayer PROVIDER.CAPS "+qgsImgProvider->capabilitiesString();
     dblExtMinUtmX = qgsImgLayer->extent().xMinimum();
     dblExtMaxUtmX = qgsImgLayer->extent().xMaximum();
     dblExtMinUtmY = qgsImgLayer->extent().yMinimum();
@@ -591,12 +557,12 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
     dblUnitPixX = qgsImgLayer->rasterUnitsPerPixelX();
     dblUnitPixY = qgsImgLayer->rasterUnitsPerPixelY();
 
-    out->log("rasterLayer West  "+QString::number(dblExtMinUtmX));
-    out->log("rasterLayer East  "+QString::number(dblExtMaxUtmX));
-    out->log("rasterLayer North "+QString::number(dblExtMaxUtmY));
-    out->log("rasterLayer South "+QString::number(dblExtMinUtmY));
-    out->log("rasterLayer UnitX "+QString::number(dblUnitPixX));
-    out->log("rasterLayer UnitY "+QString::number(dblUnitPixY));
+    qDebug() << "rasterLayer West  "+QString::number(dblExtMinUtmX);
+    qDebug() <<"rasterLayer East  "+QString::number(dblExtMaxUtmX);
+    qDebug() <<"rasterLayer North "+QString::number(dblExtMaxUtmY);
+    qDebug() <<"rasterLayer South "+QString::number(dblExtMinUtmY);
+    qDebug() <<"rasterLayer UnitX "+QString::number(dblUnitPixX);
+    qDebug() <<"rasterLayer UnitY "+QString::number(dblUnitPixY);
 
 
     QgsContrastEnhancement* qgsContrastEnhRed = new QgsContrastEnhancement(QGis::UInt16);
@@ -628,7 +594,7 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
 
     qgsImgLayer->setRenderer( renderer );
     setExtent(qgsImgLayer->extent());
-    out->debug("layerRegistry NUM.LAYER "+QString::number(qgsLyrRegistry->count()));
+    qDebug() << "layerRegistry NUM.LAYER "+QString::number(qgsLyrRegistry->count());
     crsUTM = qgsImgLayer->crs();
     if (qgsTrfm2LonLat) delete qgsTrfm2LonLat;
     qgsTrfm2LonLat = new QgsCoordinateTransform(crsUTM, crs4326);
@@ -652,14 +618,15 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
         if (! done ) return false;
     }
     rawImgTm = QDateTime::currentDateTimeUtc();
-    mapLayerStack->addMapLayer("raster",qgsImgLayer,1000);
+
     return true;
 
 }
 
 bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
-    if ( qgsPolyLayer ) {
-         mapLayerStack->removeMapLayer("polygon");
+    if ( qgsPolyLayer!=0 ) {
+    	qgsLayerRegistry->removeMapLayer(qgsPolyLayer->id());
+//         delete qgsPolyLayer;
          qgsPolyLayer = 0;
     }
     QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->prjUtmSector());
@@ -676,7 +643,6 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     qgsPolyLayer->commitChanges();
     bool done = false;
     qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
-    mapLayerStack->addMapLayer("polygon",qgsPolyLayer,500);
 
     QgsRectangle rect = qgsPolyLayer->extent();
     rect.setXMinimum(rect.xMinimum()-10);
@@ -690,6 +656,30 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
 
 double CnsMapCanvas::getScaleFactor() {
 	return scaleFactor;
+}
+
+bool CnsMapCanvas::refreshLayerSet() {
+
+	QList<QgsMapCanvasLayer> layerSet;
+
+	for(auto it = config->edtLayers->begin(); it != config->edtLayers->end(); ++it) {
+		qgsLayerRegistry->addMapLayer(it.value(),false,true);
+		layerSet.append(it.value());
+	}
+	qgsLayerRegistry->addMapLayer(qgsImgLayer,false,true);
+	qgsLayerRegistry->addMapLayer(qgsPolyLayer,false,true);
+	layerSet.append(qgsImgLayer);
+	layerSet.append(qgsPolyLayer);
+	qgsLyrRegistry->reloadAllLayers();
+	setLayerSet(layerSet);
+	return true;
+}
+
+bool CnsMapCanvas::removeSelection() {
+	 for (auto it = config->edtLayers->begin(); it!=config->edtLayers->end(); ++it) {
+		 it.value()->removeSelection();
+	 }
+	 return true;
 }
 
 #ifdef OPENCV

@@ -19,8 +19,6 @@
 #include <qgsgeometry.h>
 #include <qgspoint.h>
 #include <qgsfeature.h>
-#include "textlogger.h"
-#include "sqlquery.h"
 #include "appconfig.h"
 #include <ctime>
 
@@ -67,27 +65,29 @@ public:
     explicit Db(AppConfig *config);
 
     void initConfig();
-    void initLogger(TextLogger * aOut);
 
     bool getImages(QTableWidget *result, QString type);
 
-    QStringListModel* readRawCensus(QStringListModel *model,
-                                   QgsVectorLayer *layer,
-                      const QString cam,
-                      const QString img,
-                      const QString user,
-                              int &fCnt);
-    bool deleteRawCensus(int id);
+    void readRawCensus(QTableWidget * tbl,
+    		const QString cam, const QString img, const QString user);
+
+    bool deleteRawCensus(int id, QString cam, QString img);
 
     QSet<QString> * readImageDone(const QString cam);
 
     bool writeImageDone(const int imgRdy, const int id);
 
-    bool writeRawCensus(QStringListModel* model,
-                        const QString type, const int epsg,
-                        const QString cam,
-                        const QString img,
-                        const QString user, const QString session);
+    bool writeRawCensus(const QString type,
+            const int epsg,
+            const QString cam,
+            const QString img,
+            const QString user,
+            const QString session,
+			  const QString px, const QString py,
+			  const QString ux, const QString uy,
+			  const QString lx, const QString ly);
+
+    int getRecentId();
 
     bool writeRawImage(const bool insert, const int id,
                        const quint8 epsg, const  QString cam, const QString file,
@@ -121,6 +121,10 @@ public:
 
     QStringList getSessionList();
 
+    QStringList getCamList(QString session);
+
+    QStringList getTrcList(QString session);
+
     project * getSessionParameters(QString session);
 
 private:
@@ -134,7 +138,6 @@ private:
     QString user   = TK_QSTR_NONE;
     QString pass   = TK_QSTR_NONE;
     QString uri    = TK_QSTR_NONE;
-    TextLogger *out = 0;
     QSqlDatabase db;
 };
 
