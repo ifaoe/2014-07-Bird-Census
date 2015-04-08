@@ -109,7 +109,7 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
 QgsGeometry* Db::readValidPolygon(const QString cam, const QString image) {
 
     QgsGeometry* geom = 0;
-    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMGENV);
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_VALIDPOLY);
     QString resolv =  q->query.arg(cam).arg(image);
     QSqlQuery req(db);
     if ( ! req.exec(resolv) ) {

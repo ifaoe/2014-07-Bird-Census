@@ -665,7 +665,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->prjUtmSector());
     qgsPolyLayer = new QgsVectorLayer(uri, "Polygon Layer", "memory");
 
-    QgsGeometry *validPoly = validPolyGeometry(db, strCam, strFile);
+    QgsGeometry *validPoly = db->readValidPolygon(strCam, strFile);
     QgsGeometry *imgEnv	= db->readImageEnvelope(strCam, strFile);
     QgsGeometry *invPoly= imgEnv->difference(validPoly);
 
