@@ -106,6 +106,24 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
 }
 
 // -------------------------------------------------------
+QgsGeometry* Db::readValidPolygon(const QString cam, const QString image) {
+
+    QgsGeometry* geom = 0;
+    SqlQuery *q = config->getSqlQuery(ACFG_SQL_QRY_READ_IMGENV);
+    QString resolv =  q->query.arg(cam).arg(image);
+    QSqlQuery req(db);
+    if ( ! req.exec(resolv) ) {
+    	qDebug() << req.lastError().text();
+        return 0;
+    }
+    if (req.next()) {
+        geom = QgsGeometry::fromWkt(req.value(0).toString());
+    }
+    return geom;
+
+}
+
+// -------------------------------------------------------
 // Many apriori assumptions for athmospheric data
 // precision good enough for now
 double Db::getSolarAzimuth(const QString cam, const QString image) {

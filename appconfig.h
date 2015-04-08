@@ -32,6 +32,7 @@ const QString ACFG_SQL_QRY_READ_RCENSUS     = "readRawCensus";
 const QString ACFG_SQL_QRY_READ_RCENSUS_ADMIN     = "readRawCensusAdmin";
 const QString ACFG_SQL_QRY_DEL_RCENSUS      = "deleteRawCensus";
 const QString ACFG_SQL_QRY_READ_IMGENV      = "readImgEnvelope";
+const QString ACFG_SQL_QRY_READ_VALIDPOLY   = "readValidPoly";
 const QString ACFG_SQL_QRY_READ_FDATA       = "readImgFlightData";
 const QString ACFG_SQL_QRY_READ_ID_MAP      = "readIdMapping";
 const QString ACFG_SQL_QRY_READ_DONE        = "readImageDone";
