@@ -39,10 +39,12 @@ MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
 	ui->tbwObjects->hideColumn(3);
 	ui->tbwObjects->horizontalHeader()->setStretchLastSection(true);
 
+	initFilters();
+	initSessionFrame();
 
-    db->getImages(ui->tbvImages, config->prjType());
     imgSelector = ui->tbvImages->selectionModel();
     ui->tbvImages->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui->tbvImages->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     objSelector = ui->tbwObjects->selectionModel();
     ui->tbwObjects->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -61,7 +63,7 @@ MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
     connect( imgSelector,
              SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
              this,
-             SLOT(imgUpdateSelection(QItemSelection,QItemSelection)));
+             SLOT(imgUpdateSelection()));
 
     connect( objSelector,
              SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
@@ -70,10 +72,6 @@ MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
 
     connect( ui->cmbSession, SIGNAL(currentIndexChanged(int)),
     		this, SLOT(handleSessionSelection()));
-
-    connect( ui->cmbCam, SIGNAL(currentIndexChanged(int)), this, SLOT(handleCamSelection()));
-
-    connect( ui->cmbTrc, SIGNAL(currentIndexChanged(int)), this, SLOT(handleTrcSelection()));
 
     connect( ui->chbHideMarker, SIGNAL(clicked(bool)), this, SLOT(hideMarker(bool)));
     connect( ui->btgLayers, SIGNAL(buttonClicked(int)), this, SLOT(rbToggledType()));
@@ -225,18 +223,16 @@ void MainWindow::objUpdateSelection() {
 }
 
 // ----------------------------------------------------------------------
-void MainWindow::imgUpdateSelection(QItemSelection selected,
-     QItemSelection deselected)
+void MainWindow::imgUpdateSelection()
  {
-	Q_UNUSED(deselected);
+	if (imgSelector->selectedIndexes().isEmpty())
+		return;
 	objSelector->clearSelection();
 	ui->tbwObjects->clearContents();
 
-     QModelIndexList selItems = selected.indexes();
-     if (selItems.size()<1 ) return;
-     QModelIndex selIndex = selItems.at(0);
-     selFile = QString(ui->tbvImages->model()->data(selIndex).toString());
-     selCam  = QString::number(selIndex.column()-1);
+     int currow = imgSelector->currentIndex().row();
+     selFile = QString(ui->tbvImages->item(currow, 2)->text());
+     selCam  = QString(ui->tbvImages->item(currow, 1)->text());;
 
 	  ui->chbHideMarker->setChecked(false);
 	  if (!mapCanvas->doSaveData(curCam, curFile)) {
@@ -244,28 +240,28 @@ void MainWindow::imgUpdateSelection(QItemSelection selected,
 								"Metadaten fuer "+curFile+" Kamera "+curCam+
 								"\n konnte nicht gesichert werden!",
 							   "OK");
-		  imgSelector->setCurrentIndex(selIndex,
-									   QItemSelectionModel::Deselect);
+		  imgSelector->clearSelection();
 		  return;
 	  }
 	  if (!mapCanvas->doOpenRasterLayer(selCam, selFile)) {
 		  QMessageBox::critical(this,"Fehler beim Laden Bilddatei",
 		  "Bild "+selFile+" Kamera "+selCam+
 		  "\n konnte nicht geoeffnet werden!","OK");
-		  imgSelector->setCurrentIndex(selIndex,
-									   QItemSelectionModel::Deselect);
+		  imgSelector->clearSelection();
 		  return;
 	  }
 	  if (!ovrCanvas->openImageEnvelope(selCam, selFile, mapCanvas->extent())) {
 		  QMessageBox::critical(this,"Fehler beim Laden der Envelope",
 		  "Envelope fuer Bild "+selFile+" Kamera "+selCam+
 		  "\n konnte nicht geoeffnet werden!","OK");
+		  imgSelector->clearSelection();
 		  return;
 	  }
 	  if (!ovrCanvas->openImageTiles(selCam, selFile)) {
 		  QMessageBox::critical(this,"Fehler beim Laden der Tiles",
 		  "Tiles fuer Bild "+selFile+" Kamera "+selCam+
 		  "\n konnte nicht geoeffnet werden!","OK");
+		  imgSelector->clearSelection();
 		  return;
 	  }
 	  this->setWindowTitle(config->appTitle()+" - "+config->appVersion()+" - Kamera "
@@ -295,23 +291,93 @@ bool MainWindow::checkButtonByKey(QString tp) {
 }
 
 void MainWindow::initSessionFrame() {
-	ui->cmbCam->setEnabled(false);
-	ui->cmbTrc->setEnabled(false);
+	cmbCamFilter->setEnabled(false);
+	cmbTrcFilter->setEnabled(false);
+	ui->cmbSession->addItem("");
 	ui->cmbSession->addItems(db->getSessionList());
 }
 
 void MainWindow::handleSessionSelection() {
-	QString session = ui->cmbSession->currentText();
-    project * prj = db->getSessionParameters(session);
-    config->setPrjSession(session);
+	config->setPrjSession(ui->cmbSession->currentText());
+	if (config->prjSession().isEmpty())
+		return;
+    project * prj = db->getSessionParameters(config->prjSession());
+    //TODO: set Paramters from project struct or use references
+    config->setPrjType(prj->session_type);
+    config->setPrjFlight(prj->flight_id);
+    config->setPrjFilter(prj->filter);
+    config->setPrjUtmSector(prj->utmSector);
+    config->setPrjPath(prj->path);
     delete prj;
+    cmbCamFilter->clear();
+    cmbTrcFilter->clear();
+    cmbCamFilter->setEnabled(true);
+    cmbTrcFilter->setEnabled(true);
+	cmbCamFilter->addItem("");
+	cmbCamFilter->addItems(db->getCamList(config->prjSession()));
+	cmbCamFilter->setCurrentIndex(0);
+	cmbTrcFilter->addItem("");
+	cmbTrcFilter->addItems(db->getTrcList(config->prjSession()));
+	cmbTrcFilter->setCurrentIndex(0);
+	db->getImages(ui->tbvImages, config->prjType(), "TRUE");
 }
 
-void MainWindow::handleCamSelection() {
+void MainWindow::initFilters() {
+	ui->tbwFilters->setColumnCount(3);
+	ui->tbwFilters->setColumnWidth(0,50);
+	ui->tbwFilters->setColumnWidth(1,50);
+	ui->tbwFilters->setHorizontalHeaderLabels(QStringList() << "TRC" << "CAM" << "IMG");
+	ui->tbwFilters->horizontalHeader()->setStretchLastSection(true);
+
+	cmbCamFilter = new QComboBox();
+	cmbTrcFilter = new QComboBox();
+	pteImgFilter = new QLineEdit();
+
+	ui->tbwFilters->setCellWidget(0,0,cmbTrcFilter);
+	ui->tbwFilters->setCellWidget(0,1,cmbCamFilter);
+	ui->tbwFilters->setCellWidget(0,2,pteImgFilter);
+
+    connect( cmbCamFilter, SIGNAL(currentIndexChanged(int)), this, SLOT(handleCamFilter()));
+    connect( cmbTrcFilter, SIGNAL(currentIndexChanged(int)), this, SLOT(handleTrcFilter()));
+    connect( pteImgFilter, SIGNAL(returnPressed()), this, SLOT(handleImgFilter()));
+}
+
+void MainWindow::handleCamFilter() {
 	// if last value (all cameras) is selected show all columns
 	// else only show selected column
+	QString cam = cmbCamFilter->currentText();
+	if(!cam.isEmpty()) {
+		camFilter = " AND cam LIKE '" + cam + "'";
+	} else {
+		camFilter = "";
+	}
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString());
 }
 
-void MainWindow::handleTrcSelection() {
+void MainWindow::handleTrcFilter() {
+	QString trc = cmbTrcFilter->currentText();
+	if (!trc.isEmpty()) {
+		trcFilter = " AND gps_trc=" + trc;
+	} else {
+		trcFilter = "";
+	}
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString());
+}
 
+void MainWindow::handleImgFilter() {
+	QString img = pteImgFilter->text();
+	if (!img.isEmpty()) {
+		if (img.startsWith("hd",Qt::CaseInsensitive))
+			imgFilter = " AND img LIKE 'HD" + img.remove(0,2) + "'";
+		else
+			imgFilter = " AND img LIKE 'HD" + img + "'";
+	} else {
+		imgFilter = "";
+	}
+
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString());
+}
+
+QString MainWindow::getFilterString() {
+	return "TRUE" + camFilter + trcFilter + imgFilter;
 }

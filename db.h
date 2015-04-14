@@ -66,7 +66,7 @@ public:
 
     void initConfig();
 
-    bool getImages(QTableWidget *result, QString type);
+    bool getImages(QTableWidget *result, QString type, QString filter);
 
     void readRawCensus(QTableWidget * tbl,
     		const QString cam, const QString img, const QString user);

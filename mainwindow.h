@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QMainWindow>
+#include <QLineEdit>
 #include <QLabel>
 #include <QStringList>
 #include <qgsproviderregistry.h>
@@ -46,10 +47,19 @@ private:
     QString curCam = "";
     QString curFile = "";
 
+    QString filter = "WHERE TRUE";
+    QString camFilter = "";
+    QString trcFilter = "";
+    QString imgFilter = "";
+
     QString edtCurKey  = TK_QSTR_NONE;
     QString edtCurView = TK_QSTR_NONE;
     QString edtKey[6];
     QMap<int, QString> edtKeys;
+
+    QComboBox * cmbCamFilter;
+    QComboBox * cmbTrcFilter;
+    QLineEdit * pteImgFilter;
 
     bool keyMarkerHide = false;
 
@@ -59,7 +69,8 @@ private:
     void guiInitAdditionals();
     bool checkButtonByKey(QString tp);
     void initSessionFrame();
-
+    void initFilters();
+    QString getFilterString();
 signals:
 
 public slots:
@@ -68,12 +79,13 @@ public slots:
     void clearSelection();
     void deleteSelection();
     void rbToggledType();
-    void imgUpdateSelection(QItemSelection selected, QItemSelection deselected);
+    void imgUpdateSelection();
     void objUpdateSelection();
     void hideMarker(bool checked);
     void handleSessionSelection();
-    void handleCamSelection();
-    void handleTrcSelection();
+    void handleCamFilter();
+    void handleTrcFilter();
+    void handleImgFilter();
 private:
     QSqlQueryModel* sqlImgModel = 0;
 };

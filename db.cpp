@@ -2,8 +2,8 @@
 #include <iostream>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "spa/spa.h"
-#include "ui_functions.h"
 #include <iostream>
+#include <QHeaderView>
 
 Db::Db(AppConfig *aConfig) :
     config(aConfig)
@@ -571,17 +571,21 @@ void Db::readRawCensus(QTableWidget * tbl,
 }
 
 // -------------------------------------------------------
-bool Db::getImages(QTableWidget *result, QString type){
+bool Db::getImages(QTableWidget *result, QString type, QString filter){
 	QString query;
+	result->clearSelection();
+	result->clearContents();
+//	result->clear();
+	result->setRowCount(0);
 	if (type == "full") {
 		qDebug() << "Getting all referenced images.";
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_FULL);
+		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_FULL).arg(filter);
 	} else if (type == "10p") {
 		qDebug() << "Getting 10% of all referenced images.";
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_10P);
+		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_10P).arg(filter);
 	} else {
 		qDebug() << "Unknown session type. Getting all Images.";
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_FULL);
+		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_FULL).arg(filter);
 	}
 
     qDebug() << query;
@@ -590,36 +594,38 @@ bool Db::getImages(QTableWidget *result, QString type){
     	qDebug() << req.lastError().text();
         return false;
     }
-    QSet<QString> *rdy_cam1 = readImageDone(QString::fromUtf8("1"));
-    QSet<QString> *rdy_cam2 = readImageDone(QString::fromUtf8("2"));
+    QSet<QString> *rdy_cam1 = readImageDone(QString("1"));
+    QSet<QString> *rdy_cam2 = readImageDone(QString("2"));
     result->setRowCount(req.size());
-    result->setHorizontalHeaderLabels(QStringList() << "GID" << "TID" << "CAM1" << "CAM2");
+    result->setColumnCount(3);
+    result->horizontalHeader()->setStretchLastSection(true);
     result->setColumnWidth(0, 50);
-    result->setColumnWidth(1, 30);
-    result->setColumnWidth(2, 75);
-    result->setColumnWidth(3, 75);
-    result->hideColumn(4);
+    result->setColumnWidth(1, 50);
+//    result->setColumnWidth(2, 50);
     while (req.next()) {
-        QTableWidgetItem *GID = new QTableWidgetItem(QString("%1").arg(req.value(1).toString()));
-        QTableWidgetItem *TID = new QTableWidgetItem(QString("%1").arg(req.value(2).toString()));
-        QTableWidgetItem *CAM1 = new QTableWidgetItem(QString("%1").arg(req.value(3).toString()));
-        QTableWidgetItem *CAM2 = new QTableWidgetItem(QString("%1").arg(req.value(4).toString()));
-        QTableWidgetItem *SID = new QTableWidgetItem(QString("%1").arg(req.value(0).toString()));
-        GID->setTextAlignment(Qt::AlignHCenter);
-        TID->setTextAlignment(Qt::AlignHCenter);
-        CAM1->setTextAlignment(Qt::AlignHCenter);
-        CAM2->setTextAlignment(Qt::AlignHCenter);
-        result->setItem(req.at(), 0, GID);
-        result->setItem(req.at(), 1, TID);
-        result->setItem(req.at(), 2, CAM1);
-        if ( rdy_cam1->contains( req.value(3).toString() )) {
-            result->item(req.at(), 2)->setBackgroundColor(Qt::green);
-        }
-        result->setItem(req.at(), 3, CAM2);
-        if ( rdy_cam2->contains( req.value(4).toString() )) {
-            result->item(req.at(), 3)->setBackgroundColor(Qt::green);
-        }
-        result->setItem(req.at(), 4, SID);
+        QTableWidgetItem *wtrc = new QTableWidgetItem(QString(req.value(0).toString()));
+        QTableWidgetItem *wcam = new QTableWidgetItem(QString(req.value(1).toString()));
+        QTableWidgetItem *wimg = new QTableWidgetItem(QString(req.value(2).toString()));
+
+        wtrc->setTextAlignment(Qt::AlignHCenter);
+        wcam->setTextAlignment(Qt::AlignHCenter);
+        wimg->setTextAlignment(Qt::AlignHCenter);
+        result->setItem(req.at(), 0, wtrc);
+        result->setItem(req.at(), 1, wcam);
+        result->setItem(req.at(), 2, wimg);
+        if ( req.value(1).toInt() == 1) {
+        	if( rdy_cam1->contains( req.value(2).toString() )) {
+        		result->item(req.at(), 0)->setBackgroundColor(Qt::green);
+        		result->item(req.at(), 1)->setBackgroundColor(Qt::green);
+        		result->item(req.at(), 2)->setBackgroundColor(Qt::green);
+        	}
+        } else if (req.value(1).toInt() == 2) {
+			if (rdy_cam2->contains(req.value(2).toString() )) {
+        		result->item(req.at(), 0)->setBackgroundColor(Qt::green);
+        		result->item(req.at(), 1)->setBackgroundColor(Qt::green);
+        		result->item(req.at(), 2)->setBackgroundColor(Qt::green);
+			}
+		}
     }
 
     return true;
@@ -663,6 +669,7 @@ project * Db::getSessionParameters(QString session) {
 }
 
 QStringList Db::getCamList(QString session) {
+	Q_UNUSED(session);
 //	QString query = "SELECT distinct cam FROM sync_utm32"
 	//STUB TODO: Get cams
 	// right now only 2 cams
@@ -673,7 +680,16 @@ QStringList Db::getCamList(QString session) {
 }
 
 QStringList Db::getTrcList(QString session) {
+	QStringList trc_list;
 	QString query =
-			QString("SELECT distinct gps_trc FROM sync_utm32 where session='%1'").arg(session);
-	QSqlQuery req(db);
+			QString("SELECT distinct gps_trc FROM sync_utm32 where session='%1' ORDER BY gps_trc").arg(session);
+    qDebug() << query;
+    QSqlQuery req(db);
+    if ( ! req.exec(query) ) {
+    	qDebug() << req.lastError().text();
+        return trc_list;
+    }
+    while(req.next())
+    	trc_list.append(req.value(0).toString());
+    return trc_list;
 }

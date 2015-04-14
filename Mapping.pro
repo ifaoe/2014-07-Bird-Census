@@ -25,8 +25,7 @@ SOURCES += main.cpp\
     imagetile.cpp \
     ovrmapcanvas.cpp \
     geometrycalc.cpp \
-    spa/spa.c \
-    qt_debug.hpp
+    spa/spa.c
 
 HEADERS  += mainwindow.h \
     cnsmapcanvas.h \
@@ -38,8 +37,7 @@ HEADERS  += mainwindow.h \
     geometrycalc.h \
     spa/spa.h 
 
-FORMS    += mainwindow.ui \
-	sessionselector.ui
+FORMS    += mainwindow.ui
 
 unix: LIBS += -L/usr/lib/\
  -lgdal \
