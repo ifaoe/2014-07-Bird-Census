@@ -83,6 +83,9 @@ const QString ACFG_SQL_QRY_READ_IMAGES_10P =
 		"FROM sync_utm32 WHERE $(filter) AND session='$(flight)' AND cam2_id LIKE 'HD%' "
 		") as img_table WHERE %1 AND rnum%10=0 "
 		"ORDER BY gps_trc, cam, img";
+const QString ACFG_SQL_QRY_READ_VALIDPOLY =
+		"SELECT ST_AsText(cut_env) FROM image_properties WHERE cam='%1' AND img='%2' AND session = '$(flight)'";
+
 const char ACFG_ERR_DOUBLE_KEY[] =
       "Zweideutiger Schluessel %s in Gruppe %s!\n"
       "Datei: %s/ nach Zeile: %d\nTyp: %s";
