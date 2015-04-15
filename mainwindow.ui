@@ -108,7 +108,7 @@
              <enum>QFrame::Sunken</enum>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <property name="tabSpacing">
              <number>1</number>
@@ -119,7 +119,7 @@
                <x>0</x>
                <y>0</y>
                <width>250</width>
-               <height>700</height>
+               <height>218</height>
               </rect>
              </property>
              <attribute name="label">
@@ -709,6 +709,32 @@
                    </property>
                    <property name="dbvalue" stdset="0">
                     <string>MM</string>
+                   </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">btgLayers</string>
+                   </attribute>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QRadioButton" name="rbAN">
+                   <property name="text">
+                    <string>anthropogen</string>
+                   </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>AN</string>
+                   </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">btgLayers</string>
+                   </attribute>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QRadioButton" name="rbTR">
+                   <property name="text">
+                    <string>Müll</string>
+                   </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>TR</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">btgLayers</string>

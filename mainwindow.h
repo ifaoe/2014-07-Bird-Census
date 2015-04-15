@@ -54,8 +54,8 @@ private:
 
     QString edtCurKey  = TK_QSTR_NONE;
     QString edtCurView = TK_QSTR_NONE;
-    QString edtKey[6];
-    QMap<int, QString> edtKeys;
+//    QString edtKey[6];
+//    QMap<int, QString> edtKeys;
 
     QComboBox * cmbCamFilter;
     QComboBox * cmbTrcFilter;

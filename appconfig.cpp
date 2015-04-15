@@ -83,8 +83,8 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     edtLayers->insert("VS",0);
     edtLayers->insert("MM",0);
     edtLayers->insert("UO",0);
-    edtLayers->insert("SN",0);
-    edtLayers->insert("WV",0);
+    edtLayers->insert("AN",0);
+    edtLayers->insert("TR",0);
 
 }
 

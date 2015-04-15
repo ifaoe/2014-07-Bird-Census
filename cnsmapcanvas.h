@@ -190,12 +190,6 @@ private:
 #endif /* OPENCV */
     int   cvImageBirdStatus = 0;
     QgsFields qgsEditFields;
-    QgsVectorLayer* qgsVsLayer = 0 ;
-    QgsVectorLayer* qgsVfLayer = 0 ;
-    QgsVectorLayer* qgsMmLayer = 0 ;
-    QgsVectorLayer* qgsSnLayer = 0 ;
-    QgsVectorLayer* qgsUfoLayer = 0 ;
-    QgsVectorLayer* qgsWvLayer = 0 ;
     QgsVectorLayer* qgsEdtLayer = 0;
     QgsVectorLayer* qgsPolyLayer = 0;
     QgsRasterLayer* qgsImgLayer = 0 ;
