@@ -235,9 +235,9 @@ void MainWindow::imgUpdateSelection()
      selCam  = QString(ui->tbvImages->item(currentRow, 1)->text());;
 
 	  ui->chbHideMarker->setChecked(false);
-	  if (!mapCanvas->doSaveData(curCam, curFile)) {
+	  if (!mapCanvas->doSaveData(config->curCam, config->curImg)) {
 		  QMessageBox::critical(this,"Fehler beim Sichern der Daten fuer"
-								"Metadaten fuer "+curFile+" Kamera "+curCam+
+								"Metadaten fuer "+config->curCam+" Kamera "+config->curImg+
 								"\n konnte nicht gesichert werden!",
 							   "OK");
 		  imgSelector->clearSelection();
@@ -267,6 +267,9 @@ void MainWindow::imgUpdateSelection()
 	  this->setWindowTitle(config->appTitle()+" - "+config->appVersion()+" - Kamera "
 			  + selCam +" - "+selFile);
 	  ovrCanvas->doSelectFirstTile();
+
+	  config->curCam = selCam;
+	  config->curImg = selFile;
 
 	  ui->tbxTasks->setCurrentIndex(1);
 	  mapCanvas->setFocus();
