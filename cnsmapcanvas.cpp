@@ -641,8 +641,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     qgsPolyLayer->addFeature(fet,true);
     qgsPolyLayer->commitChanges();
     bool done = false;
-    qDebug() << qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
-    qDebug() << config->symbolFileQml("BOR");
+    qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
 
     QgsRectangle rect = qgsPolyLayer->extent();
     rect.setXMinimum(rect.xMinimum()-10);
@@ -666,10 +665,12 @@ bool CnsMapCanvas::refreshLayerSet() {
 		qgsLayerRegistry->addMapLayer(it.value(),false,true);
 		layerSet.append(it.value());
 	}
-	qgsLayerRegistry->addMapLayer(qgsImgLayer,false,true);
 	qgsLayerRegistry->addMapLayer(qgsPolyLayer,false,true);
-	layerSet.append(qgsImgLayer);
+	qgsLayerRegistry->addMapLayer(qgsImgLayer,false,true);
+
 	layerSet.append(qgsPolyLayer);
+	layerSet.append(qgsImgLayer);
+
 	qgsLyrRegistry->reloadAllLayers();
 	setLayerSet(layerSet);
 	return true;
