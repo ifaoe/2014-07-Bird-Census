@@ -13,15 +13,14 @@ Defs::Defs(int argc, char *argv[]) {
 				cfgFile = QString::fromAscii(argv[i]);
 			} else {
 				qFatal("Fehlende Konfiguration fuer switch --config!");
-			} 
+			}
 		}
 	}
 
 	QProcessEnvironment environ = QProcessEnvironment::systemEnvironment();
 	mHome = environ.value("HOME", TK_QSTR_NONE);
 	mUser = environ.value("USER", TK_QSTR_NONE);
-	mRoot = environ.value("IFAOE_BIRD_CENSUS",
-			mHome + "/" + ROOT_IFAOE_BIRD_CENSUS);
+	mRoot = environ.value("IFAOE_BIRD_CENSUS", ROOT_IFAOE_BIRD_CENSUS);
 	mEnv = environ.value(ENV_IFAOE_BIRD_CENSUS, TK_QSTR_NONE);
 	if (mEnv != TK_QSTR_NONE) {
 		mRoot = mEnv;
@@ -33,14 +32,7 @@ Defs::Defs(int argc, char *argv[]) {
 				mRoot.toStdString().c_str());
 	}
 
-	QString tmp = mRoot + "/Konfiguration";
-	fEtc = QFileInfo(tmp);
-	if (!fEtc.isDir() && !fEtc.isReadable()) {
-		qFatal("%s: Unbekanntes Einstellungsverzeichnis %s!",
-				KEY_IFAOE_BIRD_CENSUS, tmp.toStdString().c_str());
-	}
-
-	tmp = mRoot + "/Konfiguration/Symbole";
+	QString tmp = mRoot + "/symbole";
 	fSymbol = QFileInfo(tmp);
 	if (!fSymbol.isDir() && !fSymbol.isReadable()) {
 		qFatal("%s: Unbekanntes Verzeichnis %s fuer Symbole !",
@@ -48,7 +40,7 @@ Defs::Defs(int argc, char *argv[]) {
 	}
 
 	if (cfgFile.compare(TK_QSTR_NONE) == 0) {
-		tmp = mRoot + "/Konfiguration/user.cfg";
+		tmp = mHome + "/.bird-census.d/user.cfg";
 	} else {
 		tmp = cfgFile;
 	}
@@ -62,9 +54,7 @@ Defs::Defs(int argc, char *argv[]) {
 QString Defs::getConfig() const {
 	return fConf.absoluteFilePath();
 }
-QString Defs::getEtcPath() const {
-	return fEtc.absoluteFilePath();
-}
+
 QString Defs::getSymbolPath() const {
 	return fSymbol.absoluteFilePath();
 }
