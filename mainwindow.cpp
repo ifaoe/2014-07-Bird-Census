@@ -227,12 +227,12 @@ void MainWindow::imgUpdateSelection()
  {
 	if (imgSelector->selectedIndexes().isEmpty())
 		return;
+
 	objSelector->clearSelection();
 	ui->tbwObjects->clearContents();
-
-     int currow = imgSelector->currentIndex().row();
-     selFile = QString(ui->tbvImages->item(currow, 2)->text());
-     selCam  = QString(ui->tbvImages->item(currow, 1)->text());;
+     int currentRow = imgSelector->selectedRows().at(0).row();
+     selFile = QString(ui->tbvImages->item(currentRow, 2)->text());
+     selCam  = QString(ui->tbvImages->item(currentRow, 1)->text());;
 
 	  ui->chbHideMarker->setChecked(false);
 	  if (!mapCanvas->doSaveData(curCam, curFile)) {

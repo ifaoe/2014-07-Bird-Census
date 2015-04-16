@@ -52,11 +52,11 @@ void OvrMapCanvas::doSelectNextTile() {
                              config->appUser(), config->prjSession(),
                              rawImgID, rawImgTmWhen, rawImgTmSeen);
             db->writeImageDone(1, rawImgID);
-            QModelIndexList curRows;
-            curRows = ui->tbvImages->selectionModel()->selectedIndexes();
-            QModelIndex newRow = curRows.first().model()->index(curRows.first().row()+1,curRows.first().column());
-            if (newRow.isValid()) {
-                ui->tbvImages->selectionModel()->select(newRow, QItemSelectionModel::ClearAndSelect);
+            int curRow = ui->tbvImages->selectionModel()->selectedRows().at(0).row();
+            if (curRow < ui->tbvImages->rowCount()) {
+            	QModelIndex newRow =ui->tbvImages->selectionModel()->model()->index(curRow+1,0);
+                ui->tbvImages->selectionModel()->select(
+                		newRow, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
             }
         } else if (msgBox.clickedButton() == stayButton) {
 
