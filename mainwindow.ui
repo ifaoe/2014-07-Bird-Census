@@ -119,7 +119,7 @@
                <x>0</x>
                <y>0</y>
                <width>250</width>
-               <height>218</height>
+               <height>700</height>
               </rect>
              </property>
              <attribute name="label">
@@ -319,7 +319,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/docSave.png</normalon>
+                        <normalon>:/RCC/icons/docSave.png</normalon>
                        </iconset>
                       </property>
                      </widget>
@@ -337,7 +337,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/goPrevious.png</normalon>
+                        <normalon>:/RCC/icons/goPrevious.png</normalon>
                        </iconset>
                       </property>
                      </widget>
@@ -355,7 +355,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/goNext.png</normalon>
+                        <normalon>:/RCC/icons/goNext.png</normalon>
                        </iconset>
                       </property>
                      </widget>
@@ -389,7 +389,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/mapFullExtent.png</normalon>
+                        <normalon>:/RCC/icons/mapFullExtent.png</normalon>
                        </iconset>
                       </property>
                      </widget>
@@ -410,7 +410,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/mapZoom1by1.png</normalon>
+                        <normalon>:/RCC/icons/mapZoom1by1.png</normalon>
                        </iconset>
                       </property>
                      </widget>
@@ -431,7 +431,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/mapPan.png</normalon>
+                        <normalon>:/RCC/icons/mapPan.png</normalon>
                        </iconset>
                       </property>
                       <property name="checkable">
@@ -458,7 +458,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/mapDigitize.png</normalon>
+                        <normalon>:/RCC/icons/mapDigitize.png</normalon>
                        </iconset>
                       </property>
                       <property name="checkable">
@@ -485,7 +485,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/mapSelect.png</normalon>
+                        <normalon>:/RCC/icons/mapDeselect.png</normalon>
                        </iconset>
                       </property>
                       <property name="checkable">
@@ -515,7 +515,7 @@
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normalon>:/RCC/Ressourcen/icons/mapRemove.png</normalon>
+                        <normalon>:/RCC/icons/mapRemove.png</normalon>
                        </iconset>
                       </property>
                      </widget>
@@ -823,7 +823,9 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
  <buttongroups>
   <buttongroup name="btgMapMode"/>
