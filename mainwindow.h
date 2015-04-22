@@ -44,8 +44,6 @@ private:
 
     QString selFile = "";
     QString selCam = "";
-    QString curCam = "";
-    QString curFile = "";
 
     QString filter = "WHERE TRUE";
     QString camFilter = "";
