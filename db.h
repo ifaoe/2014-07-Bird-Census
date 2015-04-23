@@ -113,12 +113,6 @@ public:
 
     QgsGeometry* readImageEnvelope(const QString cam, const QString image);
     QgsGeometry* readValidPolygon(const QString cam, const QString image);
-    
-    int readIdMapping(int * sync_int, QString * cam1_img, QString * cam2_img);
-
-    double getSolarAzimuth(const QString cam, const QString image);
-
-    double getTracAzimuth(const QString trc);
 
     QStringList getSessionList();
 

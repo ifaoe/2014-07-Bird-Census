@@ -23,9 +23,7 @@ SOURCES += main.cpp\
     db.cpp \
     defs.cpp \
     imagetile.cpp \
-    ovrmapcanvas.cpp \
-    geometrycalc.cpp \
-    spa/spa.c
+    ovrmapcanvas.cpp 
 
 HEADERS  += mainwindow.h \
     cnsmapcanvas.h \
@@ -33,9 +31,7 @@ HEADERS  += mainwindow.h \
     db.h \
     defs.h \
     imagetile.h \
-    ovrmapcanvas.h \
-    geometrycalc.h \
-    spa/spa.h 
+    ovrmapcanvas.h 
 
 FORMS    += mainwindow.ui
 

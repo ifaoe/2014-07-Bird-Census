@@ -1,6 +1,5 @@
 #include "cnsmapcanvas.h"
 #include "ovrmapcanvas.h"
-#include "geometrycalc.h"
 #include "mainwindow.h"
 #include <qgsgeometry.h>
 
