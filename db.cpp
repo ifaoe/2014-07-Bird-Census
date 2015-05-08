@@ -1,7 +1,6 @@
 #include "db.h"
 #include <iostream>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "spa/spa.h"
 #include <iostream>
 #include <QHeaderView>
 
@@ -421,22 +420,16 @@ void Db::readRawCensus(QTableWidget * tbl,
 }
 
 // -------------------------------------------------------
-bool Db::getImages(QTableWidget *result, QString type, QString filter){
+bool Db::getImages(QTableWidget *result, QString type, QString filter, bool missing){
 	QString query;
 	result->clearSelection();
 	result->clearContents();
 //	result->clear();
 	result->setRowCount(0);
-	if (type == "full") {
-		qDebug() << "Getting all referenced images.";
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_FULL).arg(filter);
-	} else if (type == "10p") {
-		qDebug() << "Getting 10% of all referenced images.";
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_10P).arg(filter);
-	} else {
-		qDebug() << "Unknown session type. Getting all Images.";
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_FULL).arg(filter);
-	}
+	if (missing)
+		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_NOT_READY).arg(filter);
+	else
+		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES).arg(filter);
 
     qDebug() << query;
     QSqlQuery req(db);

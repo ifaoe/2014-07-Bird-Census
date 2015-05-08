@@ -84,6 +84,7 @@ public slots:
     void handleCamFilter();
     void handleTrcFilter();
     void handleImgFilter();
+    void handleMissingCheckBox();
 private:
     QSqlQueryModel* sqlImgModel = 0;
 };

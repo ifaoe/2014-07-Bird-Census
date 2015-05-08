@@ -25,9 +25,9 @@ const char ACFG_ERR_MISSING_PARAM_GROUP[] =
 const char ACFG_ERR_MISSING_QUERY[] =
       "Fehlende Abfrage %s in Gruppe sqlQueries: {...} !\n";
 
-const QString ACFG_SQL_QRY_READ_IMAGES =
-		"SELECT tp, px, py, ux, uy, lx, ly, rcns_id FROM raw_census WHERE session ='$(session)' "
-		"AND cam  = '%1' AND img = '%2' AND usr = '%3' AND epsg = $(utmSector) order by rcns_id";
+//const QString ACFG_SQL_QRY_READ_IMAGES =
+//		"SELECT tp, px, py, ux, uy, lx, ly, rcns_id FROM raw_census WHERE session ='$(session)' "
+//		"AND cam  = '%1' AND img = '%2' AND usr = '%3' AND epsg = $(utmSector) order by rcns_id";
 const QString ACFG_SQL_QRY_READ_RIMAGE =
 		"SELECT rimg_id, tm_when, tm_seen FROM raw_images WHERE session ='$(session)'"
 		" AND cam  = '%1'  AND img = '%2' AND usr = '%3' AND epsg  = $(utmSector)";
@@ -55,34 +55,15 @@ const QString ACFG_SQL_QRY_READ_ID_MAP      =
 		"AND session = '$(flight)'";
 const QString ACFG_SQL_QRY_READ_DONE        =
 		"SELECT distinct(img) FROM raw_images WHERE cam = '%1' AND session = '$(session)' AND rdy=1";
-//const QString ACFG_SQL_QRY_READ_IMAGES_FULL =
-//		"SELECT sync_id, gps_id, gps_trc, cam1_id, cam2_id FROM sync_utm$(utmSector) WHERE "
-//		"session ='$(flight)' AND cam1_id LIKE 'HD%' AND cam2_id LIKE 'HD%' AND $(filter) "
-//		"AND gps_trc=%1 ORDER BY gps_trc, sync_id";
-//const QString ACFG_SQL_QRY_READ_IMAGES_10P  =
-//		"SELECT sync_id, gps_id, gps_trc, cam1_id, cam2_id FROM "
-//		"(SELECT sync_id, gps_id, gps_trc, cam1_id, cam2_id, row_number() OVER "
-//		"(ORDER BY gps_trc,sync_id) as rnum  FROM sync_utm$(utmSector) WHERE session ='$(flight)' "
-//		"AND cam1_id LIKE 'HD%' AND cam2_id LIKE 'HD%' AND gps_trc=%1 AND $(filter)) tempw WHERE rnum%10=0 "
-//		"ORDER BY gps_trc,sync_id";
-const QString ACFG_SQL_QRY_READ_IMAGES_FULL =
-		"SELECT * FROM ("
-		"SELECT gps_trc, '1' as cam, cam1_id as img FROM sync_utm32 "
-		"WHERE $(filter) AND session='$(flight)' AND cam1_id LIKE 'HD%' "
-		"UNION "
-		"SELECT gps_trc, '2' as cam, cam2_id as img FROM sync_utm32 "
-		"WHERE $(filter) AND session='$(flight)' AND cam2_id LIKE 'HD%' "
-		") as img_table WHERE %1 "
-		"ORDER BY gps_trc, cam, img";
-const QString ACFG_SQL_QRY_READ_IMAGES_10P =
-		"SELECT * FROM ("
-		"SELECT gps_trc, '1' as cam, cam1_id as img, row_number() OVER (ORDER BY gps_trc, sync_id) as rnum "
-		"FROM sync_utm32 WHERE $(filter) AND session='$(flight)' AND cam1_id LIKE 'HD%' "
-		"UNION "
-		"SELECT gps_trc, '2' as cam, cam2_id as img, row_number() OVER (ORDER BY gps_trc, sync_id) as rnum "
-		"FROM sync_utm32 WHERE $(filter) AND session='$(flight)' AND cam2_id LIKE 'HD%' "
-		") as img_table WHERE %1 AND rnum%10=0 "
-		"ORDER BY gps_trc, cam, img";
+const QString ACFG_SQL_QRY_READ_IMAGES =
+		"SELECT trc, cam, img FROM image_properties WHERE project_list @> ARRAY['$(session)'] AND %1 "
+		"ORDER BY trc, cam, img";
+const QString ACFG_SQL_QRY_READ_IMAGES_NOT_READY =
+		"SELECT i.trc, i.cam, i.img, r.rdy FROM "
+		"(SELECT trc, cam, img FROM image_properties WHERE project_list @> ARRAY['$(session)'] )as i "
+		"LEFT JOIN (SELECT cam, img, rdy FROM raw_images WHERE session='$(session)' AND rdy=1) as r "
+		"ON i.cam=r.cam AND i.img=r.img "
+		"WHERE %1 AND r.rdy IS NULL ORDER BY i.trc, i.cam, i.img";
 const QString ACFG_SQL_QRY_READ_VALIDPOLY =
 		"SELECT ST_AsText(cut_env) FROM image_properties WHERE cam='%1' AND img='%2' AND session = '$(flight)'";
 

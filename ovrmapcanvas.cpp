@@ -1,6 +1,5 @@
 #include "ovrmapcanvas.h"
 #include "cnsmapcanvas.h"
-#include "geometrycalc.h"
 // ----------------------------------------------------------------------
 OvrMapCanvas::OvrMapCanvas(QWidget *parent,
                            Ui::MainWindow* aUI,

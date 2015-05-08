@@ -322,7 +322,7 @@ void MainWindow::handleSessionSelection() {
 	cmbTrcFilter->addItem("");
 	cmbTrcFilter->addItems(db->getTrcList(config->prjSession()));
 	cmbTrcFilter->setCurrentIndex(0);
-	db->getImages(ui->tbvImages, config->prjType(), "TRUE");
+	db->getImages(ui->tbvImages, config->prjType(), "TRUE", ui->chbNotReady->isChecked());
 }
 
 void MainWindow::initFilters() {
@@ -343,6 +343,7 @@ void MainWindow::initFilters() {
     connect( cmbCamFilter, SIGNAL(currentIndexChanged(int)), this, SLOT(handleCamFilter()));
     connect( cmbTrcFilter, SIGNAL(currentIndexChanged(int)), this, SLOT(handleTrcFilter()));
     connect( pteImgFilter, SIGNAL(returnPressed()), this, SLOT(handleImgFilter()));
+    connect( ui->chbNotReady, SIGNAL(stateChanged(int)), this, SLOT(handleMissingCheckBox()));
 }
 
 void MainWindow::handleCamFilter() {
@@ -354,17 +355,17 @@ void MainWindow::handleCamFilter() {
 	} else {
 		camFilter = "";
 	}
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString());
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleTrcFilter() {
 	QString trc = cmbTrcFilter->currentText();
 	if (!trc.isEmpty()) {
-		trcFilter = " AND gps_trc=" + trc;
+		trcFilter = " AND trc=" + trc;
 	} else {
 		trcFilter = "";
 	}
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString());
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleImgFilter() {
@@ -378,9 +379,13 @@ void MainWindow::handleImgFilter() {
 		imgFilter = "";
 	}
 
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString());
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 QString MainWindow::getFilterString() {
 	return "TRUE" + camFilter + trcFilter + imgFilter;
+}
+
+void MainWindow::handleMissingCheckBox() {
+	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
