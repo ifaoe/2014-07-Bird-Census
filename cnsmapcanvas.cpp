@@ -632,7 +632,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
 
     QgsGeometry *validPoly = db->readValidPolygon(strCam, strFile);
     QgsGeometry *imgEnv	= db->readImageEnvelope(strCam, strFile);
-    QgsGeometry *invPoly= imgEnv->difference(validPoly);
+    QgsGeometry *invPoly= imgEnv->difference(validPoly->buffer(1e-8,0));
 
     QgsFeature fet = QgsFeature( qgsPolyLayer->dataProvider()->fields() );
     fet.setGeometry( invPoly );
