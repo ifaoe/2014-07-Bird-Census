@@ -317,10 +317,10 @@ void MainWindow::handleSessionSelection() {
     cmbCamFilter->setEnabled(true);
     cmbTrcFilter->setEnabled(true);
 	cmbCamFilter->addItem("");
-	cmbCamFilter->addItems(db->getCamList(config->prjSession()));
+	cmbCamFilter->addItems(db->getCamList(config->prjFlight()));
 	cmbCamFilter->setCurrentIndex(0);
 	cmbTrcFilter->addItem("");
-	cmbTrcFilter->addItems(db->getTrcList(config->prjSession()));
+	cmbTrcFilter->addItems(db->getTrcList(config->prjFlight()));
 	cmbTrcFilter->setCurrentIndex(0);
 	db->getImages(ui->tbvImages, config->prjType(), "TRUE", ui->chbNotReady->isChecked());
 }
