@@ -630,15 +630,18 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->prjUtmSector());
     qgsPolyLayer = new QgsVectorLayer(uri, "Polygon Layer", "memory");
 
-    QgsGeometry *validPoly = db->readValidPolygon(strCam, strFile);
+    QgsGeometry *validPoly = db->readValidPolygon(strCam, strFile)->buffer(1e-8,0);
     QgsGeometry *imgEnv	= db->readImageEnvelope(strCam, strFile);
-    QgsGeometry *invPoly= imgEnv->difference(validPoly->buffer(1e-8,0));
+    QgsGeometry *invPoly= imgEnv->difference(validPoly);
 
-    QgsFeature fet = QgsFeature( qgsPolyLayer->dataProvider()->fields() );
-    fet.setGeometry( invPoly );
-    qgsPolyLayer->startEditing();
-    qgsPolyLayer->addFeature(fet,true);
-    qgsPolyLayer->commitChanges();
+    qDebug() << validPoly->area();
+    if (validPoly->area() > 1e3) {
+		QgsFeature fet = QgsFeature( qgsPolyLayer->dataProvider()->fields() );
+		fet.setGeometry( invPoly );
+		qgsPolyLayer->startEditing();
+		qgsPolyLayer->addFeature(fet,true);
+		qgsPolyLayer->commitChanges();
+    }
     bool done = false;
     qgsPolyLayer->loadNamedStyle(config->symbolFileQml("BOR"),done);
 
