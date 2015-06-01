@@ -40,7 +40,7 @@ const QString ACFG_SQL_QRY_READ_RCENSUS_ADMIN =
 		"SELECT tp, px, py, ux, uy, lx, ly, rcns_id, usr FROM raw_census WHERE session ='$(session)' "
 		"AND cam  = '%1' AND img = '%2' AND epsg = $(utmSector) order by rcns_id";
 const QString ACFG_SQL_QRY_DEL_RCENSUS      =
-		"DELETE FROM raw_census WHERE rcns_id =%1 AND session='$(session)' AND cam='%2' AND img='%3'";
+		"DELETE FROM raw_census WHERE rcns_id =%1 AND session='$(session)' AND cam='%2' AND img='%3' AND usr='%4'";
 const QString ACFG_SQL_QRY_READ_IMGENV      =
 		"SELECT st_astext(geo_rc_bb) as bb, st_astext(geo_rc_sb) as sb, cam1_cfg as cfg1, "
 		"cam2_cfg as cfg2 FROM sync_utm$(utmSector) WHERE cam%1_id = '%2' AND session = '$(flight)'";

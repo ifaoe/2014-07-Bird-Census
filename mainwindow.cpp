@@ -169,8 +169,8 @@ void MainWindow::guiInitAdditionals() {
 void MainWindow::deleteSelection() {
 	int currentRow = objSelector->selectedRows().at(0).row();
 	int rcns_id = ui->tbwObjects->item(currentRow,0)->text().toInt();
-	db->deleteRawCensus(rcns_id, selCam, selFile);
-	db->readRawCensus(ui->tbwObjects, selCam, selFile, config->appUser());
+	db->deleteRawCensus(rcns_id, selCam, selFile, config->appUser());
+	db->readRawCensus(ui->tbwObjects, selCam, selFile);
 }
 
 // ----------------------------------------------------------------------
@@ -215,10 +215,18 @@ void MainWindow::objUpdateSelection() {
 	if (mapCanvas->getMapMode() == MAP_MODE_SELECT) {
 		QgsFeatureIterator it = lyr->dataProvider()->getFeatures();
 		QgsFeature fet;
-		while (it.nextFeature(fet))
-			if(fet.attribute("SID").toInt() == id)
+		while (it.nextFeature(fet)) {
+			if(fet.attribute("SID").toInt() == id) {
 				lyr->select(fet.id());
-		ui->btnMapRmObj->setEnabled(true);
+				if (config->appUser() == ui->tbwObjects->item(currentRow, 8)->text() ||
+						config->getAdmins().contains(config->appUser())) {
+					ui->btnMapRmObj->setEnabled(true);
+					break;
+				}
+			}
+		}
+
+
 	}
 }
 
@@ -275,7 +283,7 @@ void MainWindow::imgUpdateSelection()
 	  mapCanvas->setFocus();
 	  mapCanvas->doSetupEditModus();
 
-	  db->readRawCensus(ui->tbwObjects, selCam, selFile, config->appUser());
+	  db->readRawCensus(ui->tbwObjects, selCam, selFile);
  }
 // ----------------------------------------------------------------------
 

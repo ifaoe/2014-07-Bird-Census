@@ -420,7 +420,7 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
                       dblMapCursorLongitude, dblMapCursorLatitude, -1, 0);
 
         qDebug() << lstr;
-        db->readRawCensus(ui->tbwObjects, curCam, curImg, config->appUser());
+        db->readRawCensus(ui->tbwObjects, curCam, curImg);
 //        this->refresh();
 
     } else if (mapMode ==  MAP_MODE_SELECT )  {

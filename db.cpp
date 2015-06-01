@@ -278,8 +278,9 @@ bool Db::writeRawCensus(const QString type,
 }
 
 // -------------------------------------------------------
-bool Db::deleteRawCensus(int id, QString cam, QString img) {
-    QString query = config->replacePrjSettings(ACFG_SQL_QRY_DEL_RCENSUS.arg(id).arg(cam).arg(img));
+bool Db::deleteRawCensus(int id, QString cam, QString img, QString user) {
+    QString query = config->replacePrjSettings(ACFG_SQL_QRY_DEL_RCENSUS
+    		.arg(id).arg(cam).arg(img).arg(user));
     qDebug() << query;
     QSqlQuery req(db);
     if ( ! req.exec(query) ) {
@@ -322,17 +323,11 @@ bool Db::writeImageDone(const int imgRdy, const int id) {
 }
 
 // -------------------------------------------------------
-void Db::readRawCensus(QTableWidget * tbl,
-		const QString cam, const QString img, const QString user) {
-    QString query;
+void Db::readRawCensus(QTableWidget * tbl, const QString cam, const QString img) {
     QString lyrName;
     QStringList usrAdmins = config->getAdmins();
     tbl->model()->removeRows(0,tbl->rowCount());
-    if (usrAdmins.contains(user)) {
-        query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
-    } else {
-        query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS.arg(cam).arg(img).arg(user));
-    }
+    QString query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
     qDebug() << query;
     QSqlQuery req(db);
     if ( ! req.exec(query) ) qDebug() << req.lastError().text();
