@@ -471,7 +471,11 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
 
 QStringList Db::getSessionList() {
     QStringList sessionlist;
-    QString query = config->replacePrjSettings("SELECT project_id FROM projects where active=1");
+    QString query;
+    if (config->getAdmins().contains(config->appUser()))
+    	query = config->replacePrjSettings("SELECT project_id FROM projects where active>0");
+    else
+    	query = config->replacePrjSettings("SELECT project_id FROM projects where active=1");
     qDebug() << query;
     QSqlQuery req(db);
     if ( ! req.exec(query) ) {
