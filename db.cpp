@@ -327,7 +327,11 @@ void Db::readRawCensus(QTableWidget * tbl, const QString cam, const QString img)
     QString lyrName;
     QStringList usrAdmins = config->getAdmins();
     tbl->model()->removeRows(0,tbl->rowCount());
-    QString query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
+    QString query;
+    if (config->prjSession().startsWith("Testdatensatz"))
+    	query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
+    else
+    	query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS.arg(cam).arg(img).arg(config->appUser()));
     qDebug() << query;
     QSqlQuery req(db);
     if ( ! req.exec(query) ) qDebug() << req.lastError().text();
@@ -416,6 +420,7 @@ void Db::readRawCensus(QTableWidget * tbl, const QString cam, const QString img)
 
 // -------------------------------------------------------
 bool Db::getImages(QTableWidget *result, QString type, QString filter, bool missing){
+	Q_UNUSED(type);
 	QString query;
 	result->clearSelection();
 	result->clearContents();
