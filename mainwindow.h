@@ -42,18 +42,16 @@ private:
     QItemSelectionModel *imgSelector= 0;
     QItemSelectionModel *objSelector= 0;
 
-    QString selFile = "";
-    QString selCam = "";
+    QString selFile;
+    QString selCam;
 
     QString filter = "WHERE TRUE";
     QString camFilter = "";
     QString trcFilter = "";
     QString imgFilter = "";
 
-    QString edtCurKey  = TK_QSTR_NONE;
-    QString edtCurView = TK_QSTR_NONE;
-//    QString edtKey[6];
-//    QMap<int, QString> edtKeys;
+    QString edtCurKey;
+    QString edtCurView;
 
     QComboBox * cmbCamFilter;
     QComboBox * cmbTrcFilter;

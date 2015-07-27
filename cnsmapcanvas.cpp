@@ -204,7 +204,7 @@ void CnsMapCanvas::doCenter1by1(double x, double y) {
 /** Aktualisieren allerstatuslabel und Variablen */
 void CnsMapCanvas::doUpdateStatus() {
     if (!qgsImgLayer) return;
-    QString strMode = TK_QSTR_NONE;
+    QString strMode;
     switch (mapMode) {
     case MAP_MODE_DIGITIZE:
         strMode = "ERFASSUNG";
@@ -348,7 +348,8 @@ bool CnsMapCanvas::doSaveData(QString cam, QString file) {
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::saveData(const QString cam, const QString file) {
 
-    if (cam.compare(TK_QSTR_NONE) == 0 ) return true;
+	// TODO: CLEANUP
+    if (cam.isEmpty()) return true;
 
     QDateTime tmNow = QDateTime::currentDateTimeUtc();
     QString tmSeen = QString::number(rawImgTm.secsTo(tmNow));

@@ -9,7 +9,7 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     const char* cfgFile = defaultSettings->getConfig().toStdString().c_str();
 
     try {
-        cfg.readFile( cfgFile );
+        system_config.readFile( CONFIG_IFAOE_BIRD_CENSUS.toStdString().c_str());
     } catch(const FileIOException &fioex)  {
         qFatal("Fehler in Konfiguration %s!", cfgFile );
     } catch(const ParseException &pex) {
@@ -18,7 +18,16 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     }
 
     try {
-        qry.readFile( QUERY_IFAOE_BIRD_CENSUS.toStdString().c_str() );
+        query_config.readFile( QUERY_IFAOE_BIRD_CENSUS.toStdString().c_str() );
+    } catch(const FileIOException &fioex)  {
+        qFatal("Fehler in Konfiguration %s!", QUERY_IFAOE_BIRD_CENSUS.toStdString().c_str() );
+    } catch(const ParseException &pex) {
+        qFatal("Fehler in Konfiguration %s in Zeile %d\n Details: %s! ",
+            pex.getFile(), pex.getLine(), pex.getError());
+    }
+
+    try {
+        user_config.readFile( defaultSettings->getConfig().toStdString().c_str() );
     } catch(const FileIOException &fioex)  {
         qFatal("Fehler in Konfiguration %s!", QUERY_IFAOE_BIRD_CENSUS.toStdString().c_str() );
     } catch(const ParseException &pex) {
@@ -29,28 +38,27 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     // @TODO Include directory setzen
     // const char* cfgInclude = defaultSettings->getEtc().toStdString().c_str();
     // cfg.setIncludeDir( cfgInclude );
-    const Setting& cfgRoot = cfg.getRoot();
+    const Setting& system_config_root = system_config.getRoot();
 
     // Einlesen der Grundparameter
-    readQString(cfgRoot, "title", qsAppTitle, "**NONE**",
+    readQString(system_config_root, "title", qsAppTitle, "**NONE**",
                 "Name des Programms", true);
-    readQString(cfgRoot, "version", qsAppVersion, "0.0",
+    readQString(system_config_root, "version", qsAppVersion, "0.0",
                 "Versionsnummer des Programms - bug tracking", true);
-    readQString(cfgRoot, "author",  qsAppAuthor, "**NOBODY**",
+    readQString(system_config_root, "author",  qsAppAuthor, "**NOBODY**",
                 "Kontaktdaten Programmauthor, in der Regel die E-Mail" , true);
-    readQString(cfgRoot, "copyright",  qsAppCopy, "**NOBODY**",
+    readQString(system_config_root, "copyright",  qsAppCopy, "**NOBODY**",
                 "Kopierrechte" , true);
 
     QString tmpAdmins;
-    readQString(cfgRoot, "admins", tmpAdmins, "", "Administatoren", true);
+    readQString(system_config_root, "admins", tmpAdmins, "", "Administatoren", true);
     usrAdmins = tmpAdmins.split(",");
 
     // Einlesen der GUI Parameter
-    const Setting& gui = readGroup(cfgRoot, "gui",
-                                   "Gruppe der GUI Einstellungen");
+    const Setting & user_config_root = user_config.getRoot();
+    const Setting& gui = readGroup(user_config_root,"gui", "Gruppe der GUI Einstellungen");
 
-    const Setting& guiWin = readGroup(gui, "win",
-                                   "Gruppe der GUI Fenstereinstellungen");
+    const Setting& guiWin = readGroup(gui, "win",  "Gruppe der GUI Fenstereinstellungen");
 
     readQuint16(guiWin,"width",  winWidth,  800, "Fensterbreite", true);
     readQuint16(guiWin,"height", winHeight, 600, "FensterHoehe", true);
@@ -58,14 +66,14 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     readQuint16(guiWin,"top",    winTop,      0, "Fensterposition Oben", true);
 
     // Einlesen der Grundparameter
-    const Setting& qgis = readGroup(cfgRoot, "qgis",
-                                   "Gruppe der GUI Einstellungen");
+    const Setting& qgis = readGroup(system_config_root, "qgis",
+                                   "Gruppe der GGIS Einstellungen");
 
     readQString(qgis,"prefixPath",  qsQgsPrefixPath, "/usr",
              "Pfadprefix fuer die Qgis-Installation LINUX /usr oder /usr/local",
              true);
 
-    const Setting& image = readGroup(cfgRoot, "image", "Bildeinstellungen");
+    const Setting& image = readGroup(user_config_root, "image", "Bildeinstellungen");
     readQuint8(image, "bandRed",     qui8ImgBandRed, 1, "Index roter Kanal", true);
     readQuint8(image, "bandBlue",    qui8ImgBandBlue, 2, "Index blauer Kanal", true);
     readQuint8(image, "bandGreen",  qui8ImgBandGreen, 3, "Index griener Kanal", true);
@@ -92,7 +100,7 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
 QString AppConfig::symbolFileSld(const QString name) const {
     return defaultSettings->getSymbolPath()+"/"+name+".sld";
 }
-// -------------------------------------------------------------------------
+// ----------------------------------------z---------------------------------
 QString AppConfig::symbolFileQml(const QString name) const {
     return defaultSettings->getSymbolPath()+"/"+name+".qml";
 }
@@ -139,7 +147,7 @@ quint16 AppConfig::imgMinBlue() const { return qui16ImgMinBlue; }
 quint16 AppConfig::imgMaxBlue() const { return qui16ImgMaxBlue; }
 
 
-Setting& AppConfig::root() const {  return cfg.getRoot(); }
+Setting& AppConfig::root() const {  return system_config.getRoot(); }
 
 // -------------------------------------------------------------------------
 /**
@@ -148,7 +156,7 @@ Setting& AppConfig::root() const {  return cfg.getRoot(); }
  * @todo move int SqlQuery class
  */
 void AppConfig::readQueries() {
-	const Setting& cfgRoot = qry.getRoot();
+	const Setting& cfgRoot = query_config.getRoot();
     const Setting& queries = readGroup(cfgRoot, "sqlQueries",
                                        "Gruppe der SQL Abfragen");
     const char* HELP_TMPL = "Schablone fuer die SQL-Abfrage";
@@ -160,8 +168,8 @@ void AppConfig::readQueries() {
         QString key = QString(set.getName());
         qDebug() << "Key: " << key;
         QString query, desc;
-        readQString(set, "query", query, TK_QSTR_NONE, HELP_TMPL, true);
-        readQString(set, "help", desc, TK_QSTR_NONE, HELP_DESC, true);
+        readQString(set, "query", query, "", HELP_TMPL, true);
+        readQString(set, "help", desc, "", HELP_DESC, true);
         replacePrjSettings(query);
     }
 }

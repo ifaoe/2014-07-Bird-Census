@@ -2,15 +2,15 @@
 
 Defs::Defs(int argc, char *argv[]) {
 
-	QString cfgFile = TK_QSTR_NONE;
+	QString user_config_file = "";
 
 	for (int i = 0; i < argc; i++) {
 		QString qArg = QString::fromAscii(argv[i]);
 		args.append(qArg);
-		if (qArg.compare("-c") == 0 || qArg.compare("--config") == 0) {
+		if (qArg == "-c" || qArg == "--config") {
 			i++;
 			if (i < argc) {
-				cfgFile = QString::fromAscii(argv[i]);
+				user_config_file = QString::fromAscii(argv[i]);
 			} else {
 				qFatal("Fehlende Konfiguration fuer switch --config!");
 			}
@@ -18,13 +18,11 @@ Defs::Defs(int argc, char *argv[]) {
 	}
 
 	QProcessEnvironment environ = QProcessEnvironment::systemEnvironment();
-	mHome = environ.value("HOME", TK_QSTR_NONE);
-	mUser = environ.value("USER", TK_QSTR_NONE);
+	mHome = environ.value("HOME", "");
+	mUser = environ.value("USER", "");
 	mRoot = environ.value("IFAOE_BIRD_CENSUS", ROOT_IFAOE_BIRD_CENSUS);
-	mEnv = environ.value(ENV_IFAOE_BIRD_CENSUS, TK_QSTR_NONE);
-	if (mEnv != TK_QSTR_NONE) {
-		mRoot = mEnv;
-	}
+	mEnv = environ.value(ENV_IFAOE_BIRD_CENSUS, "");
+	if (mEnv.isEmpty()) mEnv = mRoot;
 
 	fRoot = QFileInfo(mRoot);
 	if (!fRoot.isDir() && !fRoot.isReadable()) {
@@ -39,11 +37,7 @@ Defs::Defs(int argc, char *argv[]) {
 				KEY_IFAOE_BIRD_CENSUS, tmp.toStdString().c_str());
 	}
 
-	if (cfgFile.compare(TK_QSTR_NONE) == 0) {
-		tmp = mHome + "/.bird-census.d/user.cfg";
-	} else {
-		tmp = cfgFile;
-	}
+	tmp = user_config_file.isEmpty() ? mHome + "/.bird-census.d/user.cfg" : user_config_file;
 	fConf = QFileInfo(tmp);
 	if (!fConf.isFile() && !fConf.isReadable()) {
 		qFatal("%s: Unbekanntes Startdatei %s ", KEY_IFAOE_BIRD_CENSUS,

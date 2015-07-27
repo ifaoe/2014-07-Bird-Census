@@ -244,7 +244,7 @@ void MainWindow::imgUpdateSelection()
 
 	  ui->chbHideMarker->setChecked(false);
 	  if (!mapCanvas->doSaveData(config->curCam, config->curImg)) {
-		  QMessageBox::critical(this,"Fehler beim Sichern der Daten fuer"
+		  QMessageBox::critical(this,"Fehler","Fehler beim Sichern der Daten fuer"
 								"Metadaten fuer "+config->curCam+" Kamera "+config->curImg+
 								"\n konnte nicht gesichert werden!",
 							   "OK");

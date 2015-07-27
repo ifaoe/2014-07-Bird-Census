@@ -156,29 +156,30 @@ public:
     void readQueries();
 
     QMap<QString, QgsVectorLayer*> * edtLayers;
-    QString curCam = "";
-    QString curImg = "";
+    QString curCam;
+    QString curImg;
 
 private:
     const Defs *defaultSettings;
-    Config    cfg;
-    Config	  qry;
+    Config user_config;
+    Config    system_config;
+    Config	  query_config;
     // -----------------------------------------------------
-    QString   qsAppTitle   = TK_QSTR_NONE;
-    QString   qsAppVersion = TK_QSTR_NONE;
-    QString   qsAppAuthor  = TK_QSTR_NONE;
-    QString   qsAppCopy    = TK_QSTR_NONE;
+    QString   qsAppTitle;
+    QString   qsAppVersion;
+    QString   qsAppAuthor;
+    QString   qsAppCopy;
     QStringList usrAdmins;
 
     // -----------------------------------------------------
     QString   qsQgsPrefixPath = "/usr";
 
     // -----------------------------------------------------
-    QString   qsPrjPath    = TK_QSTR_NONE;
-    QString   qsPrjSession = TK_QSTR_NONE;
-    QString   qsPrjFlight = TK_QSTR_NONE;
-    QString   qsPrjFilter = TK_QSTR_NONE;
-    QString   qsPrjType = TK_QSTR_NONE;
+    QString   qsPrjPath;
+    QString   qsPrjSession;
+    QString   qsPrjFlight;
+    QString   qsPrjFilter;
+    QString   qsPrjType;
     quint8    qui8PrjUtmSector = 0;
 
     // -----------------------------------------------------

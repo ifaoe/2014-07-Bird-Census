@@ -12,7 +12,7 @@ class ImageTile
         int intSesRef  = -1;
         int intSyncRef = -1;
         int intCam     = -1;
-        QString qstrCamRef = TK_QSTR_NONE;
+        QString qstrCamRef;
         int intSector = -1;
         int intQlbRef = -1;
         int intImgX = -1;

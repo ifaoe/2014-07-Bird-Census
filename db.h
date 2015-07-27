@@ -129,9 +129,9 @@ private:
     QString name   = "daisi";
     QString host   = "localhost";
     int port       = DB_CFGIO_DEF_PORT;
-    QString user   = TK_QSTR_NONE;
-    QString pass   = TK_QSTR_NONE;
-    QString uri    = TK_QSTR_NONE;
+    QString user;
+    QString pass;
+    QString uri;
     QSqlDatabase db;
 };
 
