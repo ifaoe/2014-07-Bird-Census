@@ -34,10 +34,10 @@ const QString ACFG_SQL_QRY_READ_RIMAGE =
 const QString ACFG_SQL_QRY_READ_RIMAGE_TILE =
 		"SELECT rtls_id, ux, uy, w, h, tm_when, tm_seen FROM raw_tiles WHERE session ='$(session)'"
 		" AND cam  = '%1' AND img = '%2' AND usr = '%3' AND epsg  = $(utmSector)";
-const QString ACFG_SQL_QRY_READ_RCENSUS = "SELECT tp, px, py, ux, uy, lx, ly, rcns_id, usr FROM raw_census WHERE session ='$(session)' "
+const QString ACFG_SQL_QRY_READ_RCENSUS = "SELECT rcns_id, usr, tp, ux, uy, lx, ly  FROM raw_census WHERE session ='$(session)' "
 		"AND cam  = '%1' AND img = '%2' AND usr='%3' AND epsg = $(utmSector) order by rcns_id";
 const QString ACFG_SQL_QRY_READ_RCENSUS_ADMIN =
-		"SELECT tp, px, py, ux, uy, lx, ly, rcns_id, usr FROM raw_census WHERE session ='$(session)' "
+		"SELECT rcns_id, usr, tp, ux, uy, lx, ly FROM raw_census WHERE session ='$(session)' "
 		"AND cam  = '%1' AND img = '%2' AND epsg = $(utmSector) order by rcns_id";
 const QString ACFG_SQL_QRY_DEL_RCENSUS      =
 		"DELETE FROM raw_census WHERE rcns_id =%1 AND session='$(session)' AND cam='%2' AND img='%3'";
@@ -155,7 +155,6 @@ public:
 
     void readQueries();
 
-    QMap<QString, QgsVectorLayer*> * edtLayers;
     QString curCam;
     QString curImg;
 
@@ -200,8 +199,6 @@ private:
     quint16 winHeight = 1000;
     quint16 winLeft = 1;
     quint16 winTop  = 1;
-
-
 };
 
 #endif // APPCONFIG_H

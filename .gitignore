@@ -6,3 +6,5 @@ build/
 nbproject/
 cscope.out
 Mapping.pro.user*
+Debug/
+Release/

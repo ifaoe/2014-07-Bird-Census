@@ -35,10 +35,10 @@
 #include <qgsmarkersymbollayerv2.h>
 #include <qgsvectorlayer.h>
 #include <qgsvectordataprovider.h>
-#include <opencv2/core/core.hpp>
 #include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
+#include "QgsMapMarker.h"
 
 class OvrMapCanvas;
 
@@ -73,17 +73,21 @@ public:
     void doSetupEditModus();
     bool doSaveData(QString cam, QString file);
     void setOvrCanvas(OvrMapCanvas* ovrCvs);
-    QgsVectorLayer* rbCheckedVectorLayer();
     int getMapMode();
     double getScaleFactor();
-    bool removeSelection();
-
+    bool DeselectObjects();
+    QgsVectorLayer * qgis_edit_layer() {return qgis_edit_layer_;}
+    QgsVectorLayer * qgis_poly_layer() {return qgis_poly_layer_;}
+    QgsRasterLayer * qgis_image_layer() {return qgis_image_layer_;}
+    void UpdateObjectMarkers();
+    bool SelectObjectByLocation(const QgsPoint & point);
+    bool SelectObjectById(int rcns_id);
+    void HideMarkers(bool hide);
+    int current_object_selection() {return current_object_selection_;}
 signals:
     
 public slots:
     void doZoomExtent();
-    // void doZoomIn();
-    // void doZoomOut();
     void doZoom1by1();
     bool doOpenRasterLayer(QString cam, QString file);
     void doModePan();
@@ -94,8 +98,6 @@ public slots:
     void doHandleKeyPressed(QKeyEvent* keyEvent);
     void doHandleKeyReleased(QKeyEvent* keyEvent);
     void doUpdateStatus();
-
-    QgsVectorLayer* layerByKey(QString key);
 
 #ifdef OPENCV
     int mapImg2CV(const QgsPoint &point, double radius, int width, int height);
@@ -184,52 +186,44 @@ private:
     bool keyAlt   = false;
     bool keyShift = false;
 
-    /** Karten Objekte */
-#ifdef OPENCV
-    cv::Mat *cvImageBird = 0;
-#endif /* OPENCV */
     int   cvImageBirdStatus = 0;
-    QgsFields qgsEditFields;
-    QgsVectorLayer* qgsEdtLayer = 0;
-    QgsVectorLayer* qgsPolyLayer = 0;
-    QgsRasterLayer* qgsImgLayer = 0 ;
+    QgsVectorLayer* qgis_edit_layer_ = 0;
+    QgsVectorLayer* qgis_poly_layer_ = 0;
+    QgsRasterLayer* qgis_image_layer_ = 0 ;
     QgsRasterDataProvider* qgsImgProvider = 0;
     QgsMapLayerRegistry * qgsLayerRegistry;
 
-    //QList<QgsMapCanvasLayer> qgsLayerList;
+    QMap<int,QgsMapMarker *> object_markers_;
+    QMap<int,QgsPoint*> object_locations_;
+    int current_object_selection_ = -1;
+
     QgsCoordinateReferenceSystem crs4326;
     QgsCoordinateReferenceSystem crsUTM;
     QgsCoordinateTransform* qgsTrfm2LonLat = 0;
 
 
-    /** Zeichenflaeche Kartefenster  */
-    //    QgsMapToolZoom      *qgsToolZoomIn = 0;
-    //    QgsMapToolZoom      *qgsToolZoomOut = 0;
 
     QgsMapToolPan       *qgsToolPan  = 0;
     QgsMapToolEmitPoint *qgsToolPoint = 0;
     QgsMapToolIdentify  *qgsToolIdentify = 0;
 
-    /** Aktionen fuer die Kartenflaeche definieren  */
-    // QAction *qtActZoomOut = 0;
-    // QAction *qtActZoomIn  = 0;
+    QMap<QString, int> type_marker_map_;
 
-    /** Aktionen */
     bool openRasterLayer(const QString imagePath,
                          const QString strCam,
                          const QString strFile);
 
     bool openPolyLayer(QString strCam, QString strFile);
 
-    QgsVectorLayer* openEditLayer(const QString imagePath,
+    bool openEditLayer(const QString imagePath,
                        const QString strCam,
-                       const QString strFile,
-                       const QString lyrKey,
-                       QgsVectorLayer * layer);
+                       const QString strFile);
 
     bool saveData(QString cam, QString file);
 
     bool refreshLayerSet();
+
+    void UpdateObjectSelection();
 };
 
 #endif // CNSMAPCANVAS_H

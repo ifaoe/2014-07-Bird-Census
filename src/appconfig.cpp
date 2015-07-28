@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include "QgsMapMarker.h"
 
 AppConfig::AppConfig(const Defs *aDefaultSettings) :
     defaultSettings(aDefaultSettings)
@@ -86,13 +87,8 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
     readQuint16(image, "tileWidth",  qui16ImgTileWidth, 800, "Breite der Image Tiles", true);
     readQuint16(image, "tileHeight",  qui16ImgTileHeight, 800, "Hoehe der Image Tiles", true);
 
-    edtLayers = new QMap<QString, QgsVectorLayer*>;
-    edtLayers->insert("VF",0);
-    edtLayers->insert("VS",0);
-    edtLayers->insert("MM",0);
-    edtLayers->insert("UO",0);
-    edtLayers->insert("AN",0);
-    edtLayers->insert("TR",0);
+
+
 
 }
 
@@ -100,7 +96,7 @@ AppConfig::AppConfig(const Defs *aDefaultSettings) :
 QString AppConfig::symbolFileSld(const QString name) const {
     return defaultSettings->getSymbolPath()+"/"+name+".sld";
 }
-// ----------------------------------------z---------------------------------
+// -------------------------------------------------------------------------
 QString AppConfig::symbolFileQml(const QString name) const {
     return defaultSettings->getSymbolPath()+"/"+name+".qml";
 }

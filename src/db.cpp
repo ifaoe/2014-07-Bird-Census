@@ -323,99 +323,16 @@ bool Db::writeImageDone(const int imgRdy, const int id) {
 }
 
 // -------------------------------------------------------
-void Db::readRawCensus(QTableWidget * tbl, const QString cam, const QString img) {
-    QString lyrName;
+void Db::UpdateObjectQuery(const QString cam, const QString img, QSqlQueryModel * model) {
     QStringList usrAdmins = config->getAdmins();
-    tbl->model()->removeRows(0,tbl->rowCount());
     QString query;
     if (config->prjSession().startsWith("Testdatensatz"))
     	query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
     else
     	query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS.arg(cam).arg(img).arg(config->appUser()));
     qDebug() << query;
-    QSqlQuery req(db);
-    if ( ! req.exec(query) ) qDebug() << req.lastError().text();
-
-    // TODO: Clear feature list
-    for (auto it = config->edtLayers->begin(); it != config->edtLayers->end(); ++it) {
-    	it.value()->removeSelection();
-    	QgsFeatureIds ids;
-    	QgsFeatureIterator fit = it.value()->dataProvider()->getFeatures();
-    	QgsFeature fet;
-    	while(fit.nextFeature(fet)) {
-    		ids.insert(fet.id());
-    	}
-    	it.value()->dataProvider()->deleteFeatures(ids);
-    }
-    while (req.next()) {
-        QString tp = req.value(0).toString();
-        int px = req.value(1).toInt();
-        int py = req.value(2).toInt();
-        double ux = req.value(3).toDouble();
-        double uy = req.value(4).toDouble();
-        double lx = req.value(5).toDouble();
-        double ly = req.value(6).toDouble();
-        int    id = req.value(7).toInt();
-
-        tbl->insertRow( tbl->rowCount() );
-
-    	QTableWidgetItem * wtp = new QTableWidgetItem(req.value(0).toString());
-    	QTableWidgetItem * wpx = new QTableWidgetItem(req.value(1).toString());
-    	QTableWidgetItem * wpy = new QTableWidgetItem(req.value(2).toString());
-    	QTableWidgetItem * wux = new QTableWidgetItem(req.value(3).toString());
-    	QTableWidgetItem * wuy = new QTableWidgetItem(req.value(4).toString());
-    	QTableWidgetItem * wlx = new QTableWidgetItem(req.value(5).toString());
-    	QTableWidgetItem * wly = new QTableWidgetItem(req.value(6).toString());
-    	QTableWidgetItem * wid = new QTableWidgetItem(req.value(7).toString());
-    	QTableWidgetItem * wusr = new QTableWidgetItem(req.value(8).toString());
-
-    	wtp->setTextAlignment(Qt::AlignHCenter);
-    	wpx->setTextAlignment(Qt::AlignHCenter);
-    	wpy->setTextAlignment(Qt::AlignHCenter);
-    	wux->setTextAlignment(Qt::AlignHCenter);
-    	wuy->setTextAlignment(Qt::AlignHCenter);
-    	wlx->setTextAlignment(Qt::AlignHCenter);
-    	wly->setTextAlignment(Qt::AlignHCenter);
-    	wid->setTextAlignment(Qt::AlignHCenter);
-    	wusr->setTextAlignment(Qt::AlignHCenter);
-
-		wtp->setFlags(wtp->flags() & ~Qt::ItemIsEditable);
-		wpx->setFlags(wpx->flags() & ~Qt::ItemIsEditable);
-		wpy->setFlags(wpy->flags() & ~Qt::ItemIsEditable);
-		wux->setFlags(wux->flags() & ~Qt::ItemIsEditable);
-		wuy->setFlags(wuy->flags() & ~Qt::ItemIsEditable);
-		wlx->setFlags(wlx->flags() & ~Qt::ItemIsEditable);
-		wly->setFlags(wly->flags() & ~Qt::ItemIsEditable);
-		wid->setFlags(wid->flags() & ~Qt::ItemIsEditable);
-		wusr->setFlags(wid->flags() & ~Qt::ItemIsEditable);
-
-		tbl->setItem(req.at(), 0, wid);
-		tbl->setItem(req.at(), 1, wtp);
-		tbl->setItem(req.at(), 2, wux);
-		tbl->setItem(req.at(), 3, wuy);
-		tbl->setItem(req.at(), 4, wlx);
-		tbl->setItem(req.at(), 5, wly);
-		tbl->setItem(req.at(), 6, wpx);
-		tbl->setItem(req.at(), 7, wpy);
-		tbl->setItem(req.at(), 8, wusr);
-
-    	QgsVectorLayer * layer = config->edtLayers->value(tp);
-    	QgsFeature fet = QgsFeature(layer->dataProvider()->fields());
-
-		fet.setGeometry( QgsGeometry::fromPoint(QgsPoint(ux,uy)) );
-		fet.setAttribute("SID",id);
-		fet.setAttribute("TP",tp);
-		fet.setAttribute("PX",px);
-		fet.setAttribute("PY",py);
-		fet.setAttribute("UX",ux);
-		fet.setAttribute("UY",uy);
-		fet.setAttribute("LX",lx);
-		fet.setAttribute("LY",ly);
-
-		layer->startEditing();
-		layer->addFeature(fet);
-		layer->commitChanges();
-    }
+    model->setQuery(query);
+    return;
 }
 
 // -------------------------------------------------------

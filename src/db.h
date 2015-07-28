@@ -68,7 +68,7 @@ public:
 
     bool getImages(QTableWidget *result, QString type, QString filter, bool missing);
 
-    void readRawCensus(QTableWidget * tbl, const QString cam, const QString img);
+    void UpdateObjectQuery(const QString cam, const QString img, QSqlQueryModel * model);
 
     bool deleteRawCensus(int id, QString cam, QString img, QString usr);
 

@@ -42,22 +42,24 @@ private:
     QItemSelectionModel *imgSelector= 0;
     QItemSelectionModel *objSelector= 0;
 
-    QString selFile;
-    QString selCam;
+    QString selected_file_;
+    QString selected_cam_;
 
     QString filter = "WHERE TRUE";
-    QString camFilter = "";
-    QString trcFilter = "";
-    QString imgFilter = "";
+    QString cam_filter_ = "";
+    QString trac_filter_ = "";
+    QString image_filter_ = "";
 
     QString edtCurKey;
     QString edtCurView;
 
-    QComboBox * cmbCamFilter;
-    QComboBox * cmbTrcFilter;
-    QLineEdit * pteImgFilter;
+    QComboBox * combobox_cam_filter_;
+    QComboBox * combobox_trac_filter_;
+    QLineEdit * lineedit_image_filter_;
 
     bool keyMarkerHide = false;
+
+    QSqlQueryModel* object_query_model_ = 0;
 
     CnsMapCanvas *mapCanvas = 0;
     OvrMapCanvas *ovrCanvas = 0;
@@ -67,6 +69,8 @@ private:
     void initSessionFrame();
     void initFilters();
     QString getFilterString();
+    QAbstractButton * GetButtonByKey(QButtonGroup * button_group, QString key, QString value);
+    void RefreshObjectList();
 signals:
 
 public slots:
@@ -74,7 +78,6 @@ public slots:
     void saveData();
     void clearSelection();
     void deleteSelection();
-    void rbToggledType();
     void imgUpdateSelection();
     void objUpdateSelection();
     void hideMarker(bool checked);
@@ -83,8 +86,6 @@ public slots:
     void handleTrcFilter();
     void handleImgFilter();
     void handleMissingCheckBox();
-private:
-    QSqlQueryModel* sqlImgModel = 0;
 };
 
 #endif // MAINWINDOW_H
