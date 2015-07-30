@@ -1,3 +1,5 @@
+
+#include <QStyle>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "db.h"
@@ -72,7 +74,6 @@ MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
     		this, SLOT(handleSessionSelection()));
 
     connect( ui->chbHideMarker, SIGNAL(clicked(bool)), this, SLOT(hideMarker(bool)));
-    connect( ui->button_group_types, SIGNAL(buttonClicked(int)), this, SLOT(rbToggledType()));
 }
 
 // ------------------------------------------------------------------------
@@ -149,11 +150,6 @@ void MainWindow::guiInitAdditionals() {
 
     connect(ui->btnNextTile, SIGNAL(clicked()),
             ovrCanvas, SLOT( doSelectNextTile()));
-
-    connect( ui->btnDoSave,SIGNAL(clicked()),
-             this, SLOT(saveData()));
-
-
 }
 
 // ----------------------------------------------------------------------

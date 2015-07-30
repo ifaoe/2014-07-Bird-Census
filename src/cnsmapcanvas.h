@@ -207,7 +207,8 @@ private:
     QgsMapToolEmitPoint *qgsToolPoint = 0;
     QgsMapToolIdentify  *qgsToolIdentify = 0;
 
-    QMap<QString, int> type_marker_map_;
+    QMap<QString, int> type_marker_icon_map_;
+    QMap<QString, QColor> type_marker_color_map_;
 
     bool openRasterLayer(const QString imagePath,
                          const QString strCam,

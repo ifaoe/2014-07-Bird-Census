@@ -90,12 +90,19 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
 
     qgsLayerRegistry = QgsMapLayerRegistry::instance();
 
-    type_marker_map_["VS"] = QgsMapMarker::ICON_CROSS_BOX;
-	type_marker_map_["VF"] = QgsMapMarker::ICON_X_BOX;
-	type_marker_map_["UO"] = QgsMapMarker::ICON_X_CIRCLE;
-	type_marker_map_["TR"] = QgsMapMarker::ICON_CROSS_CIRCLE;
-	type_marker_map_["AN"] = QgsMapMarker::ICON_CROSS_TRIANGLE;
-	type_marker_map_["MM"] = QgsMapMarker::ICON_X_DIAMOND;
+    type_marker_icon_map_["VS"] = QgsMapMarker::ICON_CROSS_BOX;
+	type_marker_icon_map_["VF"] = QgsMapMarker::ICON_X_BOX;
+	type_marker_icon_map_["UO"] = QgsMapMarker::ICON_X_CIRCLE;
+	type_marker_icon_map_["TR"] = QgsMapMarker::ICON_CROSS_CIRCLE;
+	type_marker_icon_map_["AN"] = QgsMapMarker::ICON_CROSS_DIAMOND;
+	type_marker_icon_map_["MM"] = QgsMapMarker::ICON_X_DIAMOND;
+
+    type_marker_color_map_["VS"] = Qt::green;
+	type_marker_color_map_["VF"] = Qt::green;
+	type_marker_color_map_["UO"] = Qt::gray;
+	type_marker_color_map_["TR"] = Qt::gray;
+	type_marker_color_map_["AN"] = Qt::red;
+	type_marker_color_map_["MM"] = Qt::cyan;
 }
 
 // --------------------------------------------------------------------------
@@ -549,6 +556,14 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     QgsGeometry *imgEnv	= db->readImageEnvelope(strCam, strFile);
     QgsGeometry *invPoly= imgEnv->difference(validPoly);
 
+    QgsFillSymbolV2 * symbol = new QgsFillSymbolV2;
+    if (config->getAdmins().contains(config->appUser()))
+    	symbol->setAlpha(0.3);
+    else
+    	symbol->setAlpha(1.0);
+    symbol->setColor(Qt::black);
+
+    qgis_poly_layer_->setRendererV2(new QgsSingleSymbolRendererV2(symbol));
     qDebug() << validPoly->area();
     if (validPoly->area() > 1e3) {
 		QgsFeature fet = QgsFeature( qgis_poly_layer_->dataProvider()->fields() );
@@ -557,8 +572,6 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
 		qgis_poly_layer_->addFeature(fet,true);
 		qgis_poly_layer_->commitChanges();
     }
-    bool done = false;
-    qgis_poly_layer_->loadNamedStyle(config->symbolFileQml("BOR"),done);
 
     QgsRectangle rect = qgis_poly_layer_->extent();
     rect.setXMinimum(rect.xMinimum()-10);
@@ -622,9 +635,11 @@ void CnsMapCanvas::UpdateObjectMarkers() {
 		double uy =query_model->record(i).value("uy").toDouble();
 
 		temp_marker =  new QgsMapMarker(this);
-		temp_marker->setCenter(ux,uy);
-		temp_marker->setIconType(type_marker_map_[tp]);
+		temp_marker->setCenter(QgsPoint(ux,uy));
+		temp_marker->setIconType(type_marker_icon_map_[tp]);
+		temp_marker->setIconColor(type_marker_color_map_[tp]);
 		temp_marker->setIconSize(8);
+		temp_marker->setDrawWidth(1);
 //		temp_marker->setText(QString::number(rcns_id));
 		object_markers_[rcns_id] = temp_marker;
 		object_locations_[rcns_id] = new QgsPoint(ux,uy);

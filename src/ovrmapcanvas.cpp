@@ -138,15 +138,15 @@ bool OvrMapCanvas:: readRawTile() {
 
 // ----------------------------------------------------------------------
 void OvrMapCanvas::doSelectTile(int num) {
-    qgsImgTiles->removeSelection();
-    if (!qgsImgTiles ) return;
+    qgs_image_tiles_->removeSelection();
+    if (!qgs_image_tiles_ ) return;
     saveRawTile(false);
-    QgsFeatureIterator iter = qgsImgTiles->dataProvider()->getFeatures();
+    QgsFeatureIterator iter = qgs_image_tiles_->dataProvider()->getFeatures();
     QgsFeature tileFeature;
     isCurTile = false;
     while (iter.nextFeature(tileFeature) && !isCurTile) {
        if ( tileFeature.attribute("IX").toInt() == num) {
-           qgsImgTiles->select(tileFeature.id());
+           qgs_image_tiles_->select(tileFeature.id());
            QgsGeometry* tileGeom = tileFeature.geometry();
            isCurTile = true;
            curTileW = tileGeom->boundingBox().width();
@@ -166,11 +166,11 @@ void OvrMapCanvas::doCanvasClicked(const QgsPoint &point,
                                   Qt::MouseButton button) {
     selTileId = -1;
 
-    if (!(qgsImgTiles) ) return;
+    if (!(qgs_image_tiles_) ) return;
     saveRawTile(false);
-    qgsImgTiles->removeSelection();
+    qgs_image_tiles_->removeSelection();
     if ( button != Qt::LeftButton ) return;
-    QgsFeatureIterator iter = qgsImgTiles->dataProvider()->getFeatures();
+    QgsFeatureIterator iter = qgs_image_tiles_->dataProvider()->getFeatures();
     isCurTile = false;
     QgsFeature tileFeature;
     QgsGeometry* pntGeom = QgsGeometry::fromPoint(point);
@@ -178,7 +178,7 @@ void OvrMapCanvas::doCanvasClicked(const QgsPoint &point,
        QgsGeometry* tileGeom = tileFeature.geometry();
        if ( tileGeom->contains(pntGeom)) {
            selTileId = tileFeature.id();
-           qgsImgTiles->select(selTileId);
+           qgs_image_tiles_->select(selTileId);
            curTile=tileFeature.attribute("IX").toInt();
            curTileW = tileGeom->boundingBox().width();
            curTileH = tileGeom->boundingBox().height();
@@ -195,20 +195,20 @@ void OvrMapCanvas::doCanvasClicked(const QgsPoint &point,
 // ----------------------------------------------------------------------
 void OvrMapCanvas::refreshLayerPaintList() {
       QList<QgsMapCanvasLayer> list;
-      if (qgsImgTiles)    list.append(QgsMapCanvasLayer(qgsImgTiles));
-      if (qgsImgEnvelope) list.append(QgsMapCanvasLayer(qgsImgEnvelope));
+      if (qgs_image_tiles_)    list.append(QgsMapCanvasLayer(qgs_image_tiles_));
+      if (qgs_image_envelope_) list.append(QgsMapCanvasLayer(qgs_image_envelope_));
       this->setLayerSet(list);
 }
 
 // ----------------------------------------------------------------------
 bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
 
-    if ( qgsImgTiles ) {
-         QString id = qgsImgTiles->id();
+    if ( qgs_image_tiles_ ) {
+         QString id = qgs_image_tiles_->id();
          qgsLyrRegistry->removeMapLayer(id);
-         qgsImgTiles = 0;
+         qgs_image_tiles_ = 0;
      }
-    if (! qgsImgEnvelope ) return false;
+    if (! qgs_image_envelope_ ) return false;
 
     QList<QgsField> fields;
     fields.append(QgsField("CAM",     QVariant::Int,    "Kamera"));
@@ -226,29 +226,27 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
                     QString("crs=epsg:326")+
                     QString::number(config->prjUtmSector());
 
-    qgsImgTiles = new QgsVectorLayer(props, "TILES", "memory");
-    qgsImgTiles->dataProvider()->addAttributes(fields);
+    qgs_image_tiles_ = new QgsVectorLayer(props, "TILES", "memory");
+    qgs_image_tiles_->dataProvider()->addAttributes(fields);
     double x0, x1, y0, y1 = 0 ;
     imgCanvas->doCalcWorldPos(0, 0, x0, y0);
     imgCanvas->doCalcWorldPos(imgCanvas->width()-100,
                               imgCanvas->height()-100,
                               x1, y1);
 
-    // imgCanvas->doCalcWorldPos(config->imgTileWidth(), config->imgTileHeight(),
-    //                           x1, y1);
     QgsRectangle r0(x0, y0, x1, y1);
     double utmTileWidth  = r0.width()*imgCanvas->getScaleFactor();
     double utmTileHeight = r0.height()*imgCanvas->getScaleFactor();
-    double ttlWidth = qgsImgEnvelope->extent().width();
-    double ttlHeight = qgsImgEnvelope->extent().height();
+    double ttlWidth = qgs_image_envelope_->extent().width();
+    double ttlHeight = qgs_image_envelope_->extent().height();
     int numX = floor(ttlWidth/utmTileWidth);
     int numY = floor(ttlHeight/utmTileHeight);
-    double offsX = qgsImgEnvelope->extent().xMinimum() + (ttlWidth - utmTileWidth*(numX+1) )/2;
-    double offsY = qgsImgEnvelope->extent().yMinimum() + (ttlHeight - utmTileHeight*(numY+1) )/2;
+    double offsX = qgs_image_envelope_->extent().xMinimum() + (ttlWidth - utmTileWidth*(numX+1) )/2;
+    double offsY = qgs_image_envelope_->extent().yMinimum() + (ttlHeight - utmTileHeight*(numY+1) )/2;
     bool done = true;
-    qgsImgTiles->startEditing();
+    qgs_image_tiles_->startEditing();
     // Auslesen der geometry
-    QgsFeatureIterator iter = qgsImgEnvelope->dataProvider()->getFeatures();
+    QgsFeatureIterator iter = qgs_image_envelope_->dataProvider()->getFeatures();
     QgsFeature envFeature; QgsGeometry* envGeom;
     if (iter.nextFeature(envFeature)) {
          envGeom = envFeature.geometry();
@@ -263,7 +261,7 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
             x1 = x0 + utmTileWidth;
             y1 = y0 + utmTileHeight;
             QgsGeometry* geom = QgsGeometry::fromRect(QgsRectangle(x0, y0, x1, y1));
-            QgsFeature fet = QgsFeature(qgsImgTiles->dataProvider()->fields());
+            QgsFeature fet = QgsFeature(qgs_image_tiles_->dataProvider()->fields());
             fet.setGeometry( geom );
             done = done && fet.setAttribute("CAM",strCam.toInt());
             done = done && fet.setAttribute("FILE",strFile);
@@ -280,19 +278,29 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
                 int fid = ++fcnt;
                 fet.setFeatureId(fid);
                 tileFeatureIds.append(fet.id());
-                qgsImgTiles->addFeature(fet,false);
+                qgs_image_tiles_->addFeature(fet,false);
             }
         }
     }
-    qgsImgTiles->commitChanges();
-    qgsImgTiles->loadNamedStyle(config->symbolFileQml("TILE"),done);
-    QgsLabel* lab = qgsImgTiles->label();
+    qgs_image_tiles_->commitChanges();
+
+    QgsStringMap properties;
+    properties["color"]="255,170,0";
+    properties["outline_color"]="170,85,0";
+    properties["outline_width"]="0.26";
+
+    QgsFillSymbolV2 * symbol = QgsFillSymbolV2::createSimple(properties);
+//    symbol->setAlpha(0.4);
+    qgs_image_tiles_->setLayerTransparency(50);
+     qgs_image_tiles_->setRendererV2(new QgsSingleSymbolRendererV2(symbol));
+
+    QgsLabel* lab = qgs_image_tiles_->label();
     QgsLabelAttributes* labAttr = lab->labelAttributes();
     lab->setLabelField(QgsLabel::Text, 9);
     labAttr->setColor(Qt::yellow);
     labAttr->setSize(10,0);
-    qgsImgTiles->enableLabels(true);
-    qgsLyrRegistry->addMapLayer(qgsImgTiles);
+    qgs_image_tiles_->enableLabels(true);
+    qgsLyrRegistry->addMapLayer(qgs_image_tiles_);
     refreshLayerPaintList();
     refresh();
     setMapTool(qgsToolPoint);
@@ -304,10 +312,10 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
                                      QString strFile, QgsRectangle imgExt) {
 
 	Q_UNUSED(imgExt);
-    if ( qgsImgEnvelope ) {
-         QString id = qgsImgEnvelope->id();
+    if ( qgs_image_envelope_ ) {
+         QString id = qgs_image_envelope_->id();
          qgsLyrRegistry->removeMapLayer(id);
-         qgsImgEnvelope = 0;
+         qgs_image_envelope_ = 0;
      }
 
     QList<QgsField> fields;
@@ -323,10 +331,20 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
                     QString("crs=epsg:326")+
                     QString::number(config->prjUtmSector());
 
-    qgsImgEnvelope = new QgsVectorLayer(props, "ENVELOPE", "memory");
-    qgsImgEnvelope->dataProvider()->addAttributes(fields);
+    qgs_image_envelope_ = new QgsVectorLayer(props, "ENVELOPE", "memory");
+
+        QgsStringMap properties;
+        properties["color"]="85,85,127";
+        properties["outline_color"]="255,255,0";
+
+    QgsFillSymbolV2 * symbol = QgsFillSymbolV2::createSimple(properties);;
+//    symbol->setAlpha(1.0);
+//    symbol->setColor(QColor(85,85,127,255));
+     qgs_image_envelope_->setRendererV2(new QgsSingleSymbolRendererV2(symbol));
+
+    qgs_image_envelope_->dataProvider()->addAttributes(fields);
     QgsGeometry* qgsImgEnvGeom = db->readValidPolygon(strCam, strFile);
-    QgsFeature fet = QgsFeature(qgsImgEnvelope->dataProvider()->fields());
+    QgsFeature fet = QgsFeature(qgs_image_envelope_->dataProvider()->fields());
     fet.setGeometry( qgsImgEnvGeom );
     bool done = true;
     done = done && fet.setAttribute("CAM",strCam.toInt());
@@ -337,19 +355,19 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
     done = done && fet.setAttribute("TWIDTH",config->imgTileWidth());
     done = done && fet.setAttribute("THEIGHT",config->imgTileHeight());
     if (!done) return false;
-    qgsImgEnvelope->startEditing();
-    qgsImgEnvelope->addFeature(fet,true);
-    qgsImgEnvelope->commitChanges();
+    qgs_image_envelope_->startEditing();
+    qgs_image_envelope_->addFeature(fet,true);
+    qgs_image_envelope_->commitChanges();
     done = false;
-    qgsImgEnvelope->loadNamedStyle(config->symbolFileQml("ENV"),done);
+
     //@TODO WORK ARROUND
-    QgsLabel* lab = qgsImgEnvelope->label();
+    QgsLabel* lab = qgs_image_envelope_->label();
     QgsLabelAttributes* labAttr = lab->labelAttributes();
     lab->setLabelField(QgsLabel::Text, 1);
     labAttr->setColor(Qt::yellow);
-    qgsImgEnvelope->enableLabels(false);
-    qgsLyrRegistry->addMapLayer(qgsImgEnvelope);
-    QgsRectangle rect = qgsImgEnvelope->extent();
+    qgs_image_envelope_->enableLabels(false);
+    qgsLyrRegistry->addMapLayer(qgs_image_envelope_);
+    QgsRectangle rect = qgs_image_envelope_->extent();
     rect.setXMinimum(rect.xMinimum()-10);
     rect.setYMinimum(rect.yMinimum()-10);
     rect.setXMaximum(rect.xMaximum()+10);
@@ -357,15 +375,6 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
     setExtent(rect);
     refreshLayerPaintList();
     refresh();
-
-    /* PROOF OF CONCEPT
-    QgsRectangle extR = qgsImgEnvelope->extent();
-    if (extR.intersects(imgExt)) {
-      out->log("OK Envelope passt!");
-    } else {
-      out->log("OK Envelope passt nicht!");
-    }
-    */
     return true;
 }
 

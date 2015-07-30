@@ -67,9 +67,8 @@ class OvrMapCanvas : public QgsMapCanvas
 
 
         QgsMapLayerRegistry* qgsLyrRegistry = 0;
-        QgsVectorLayer* qgsImgEnvelope = 0 ;
-        QgsVectorLayer* qgsImgTiles = 0 ;
-        QgsVectorLayer* qgsCurTile = 0 ;
+        QgsVectorLayer* qgs_image_envelope_ = 0 ;
+        QgsVectorLayer* qgs_image_tiles_ = 0 ;
 
         QgsMapToolEmitPoint *qgsToolPoint = 0;
         int selTileId = -1;
