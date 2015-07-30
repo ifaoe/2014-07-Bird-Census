@@ -292,19 +292,17 @@ bool Db::deleteRawCensus(int id, QString cam, QString img, QString user) {
 
 }
 
-QSet<QString> * Db::readImageDone(const QString cam) {
-    QSet<QString> *imgrdy = new QSet<QString>;
+void Db::readImageDone(const QString cam, QStringList & ready_list) {
     QString query = config->replacePrjSettings(ACFG_SQL_QRY_READ_DONE.arg(cam));
     qDebug() << query;
     QSqlQuery req(db);
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
-        return imgrdy;
+        return;
     }
     while (req.next()) {
-        imgrdy->insert(QString(req.value(0).toString()));
+    	ready_list.append(req.value(0).toString());
     }
-    return imgrdy;
 }
 
 // -------------------------------------------------------
@@ -354,8 +352,9 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
     	qDebug() << req.lastError().text();
         return false;
     }
-    QSet<QString> *rdy_cam1 = readImageDone(QString("1"));
-    QSet<QString> *rdy_cam2 = readImageDone(QString("2"));
+    QStringList rdy_cam1, rdy_cam2;
+    readImageDone(QString("1"), rdy_cam1);
+    readImageDone(QString("2"),rdy_cam2 );
     result->setRowCount(req.size());
     result->setColumnCount(3);
     result->horizontalHeader()->setStretchLastSection(true);
@@ -374,13 +373,13 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
         result->setItem(req.at(), 1, wcam);
         result->setItem(req.at(), 2, wimg);
         if ( req.value(1).toInt() == 1) {
-        	if( rdy_cam1->contains( req.value(2).toString() )) {
+        	if( rdy_cam1.contains( req.value(2).toString() )) {
         		result->item(req.at(), 0)->setBackgroundColor(Qt::green);
         		result->item(req.at(), 1)->setBackgroundColor(Qt::green);
         		result->item(req.at(), 2)->setBackgroundColor(Qt::green);
         	}
         } else if (req.value(1).toInt() == 2) {
-			if (rdy_cam2->contains(req.value(2).toString() )) {
+			if (rdy_cam2.contains(req.value(2).toString() )) {
         		result->item(req.at(), 0)->setBackgroundColor(Qt::green);
         		result->item(req.at(), 1)->setBackgroundColor(Qt::green);
         		result->item(req.at(), 2)->setBackgroundColor(Qt::green);

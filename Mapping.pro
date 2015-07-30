@@ -44,9 +44,6 @@ unix: LIBS += -L/usr/lib/\
  -lgdal \
  -lqgis_core \
  -lqgis_gui \
- -lopencv_core \
- -lopencv_highgui \
- -lopencv_imgproc \
  -lconfig++ \
  -lboost_date_time
 

@@ -72,7 +72,7 @@ public:
 
     bool deleteRawCensus(int id, QString cam, QString img, QString usr);
 
-    QSet<QString> * readImageDone(const QString cam);
+    void readImageDone(const QString cam, QStringList & ready_list);
 
     bool writeImageDone(const int imgRdy, const int id);
 

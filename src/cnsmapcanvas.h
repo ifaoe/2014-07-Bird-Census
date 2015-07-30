@@ -73,7 +73,7 @@ public:
     void doSetupEditModus();
     bool doSaveData(QString cam, QString file);
     void setOvrCanvas(OvrMapCanvas* ovrCvs);
-    int getMapMode();
+    int map_mode() { return map_mode_; };
     double getScaleFactor();
     bool DeselectObjects();
     QgsVectorLayer * qgis_edit_layer() {return qgis_edit_layer_;}
@@ -177,7 +177,7 @@ private:
     /** UTM-Y des aktuellen Kartenzentrums */
     double dblCurCenterUtmY = 0;
 
-    int mapMode = MAP_MODE_INSPECT;
+    int map_mode_ = MAP_MODE_INSPECT;
 
     double scaleFactor = 1.0;
 
@@ -199,7 +199,7 @@ private:
 
     QgsCoordinateReferenceSystem crs4326;
     QgsCoordinateReferenceSystem crsUTM;
-    QgsCoordinateTransform* qgsTrfm2LonLat = 0;
+    QgsCoordinateTransform qgsTrfm2LonLat;
 
 
 
@@ -210,15 +210,11 @@ private:
     QMap<QString, int> type_marker_icon_map_;
     QMap<QString, QColor> type_marker_color_map_;
 
-    bool openRasterLayer(const QString imagePath,
-                         const QString strCam,
-                         const QString strFile);
+    bool openRasterLayer(const QString imagePath, const QString strCam, const QString strFile);
 
     bool openPolyLayer(QString strCam, QString strFile);
 
-    bool openEditLayer(const QString imagePath,
-                       const QString strCam,
-                       const QString strFile);
+    bool openEditLayer(const QString strCam, const QString strFile);
 
     bool saveData(QString cam, QString file);
 

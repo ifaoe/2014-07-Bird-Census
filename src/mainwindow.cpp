@@ -86,7 +86,6 @@ void MainWindow::saveData() {
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete db;
 }
 
 // ------------------------------------------------------------------------
@@ -186,7 +185,7 @@ void MainWindow::objUpdateSelection() {
 	double utm_y = object_query_model_->data(objSelector->selectedRows(4).at(0)).toDouble();
 
 	mapCanvas->doCenter1by1(utm_x,utm_y);
-	if (mapCanvas->getMapMode() == MAP_MODE_SELECT) {
+	if (mapCanvas->map_mode() == MAP_MODE_SELECT) {
 		mapCanvas->SelectObjectById(rcns_id);
 		if (user == config->appUser() || config->getAdmins().contains(config->appUser()))
 			ui->btnMapRmObj->setEnabled(true);

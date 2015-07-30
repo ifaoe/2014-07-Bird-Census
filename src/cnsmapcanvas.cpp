@@ -83,7 +83,7 @@ CnsMapCanvas::CnsMapCanvas(QWidget *parent,
     // Initialisierung des ImageLayer der Karte
     qgis_image_layer_ = 0;
     qgsImgProvider = 0;
-    qgsTrfm2LonLat = 0;
+    qgsTrfm2LonLat.initialise();
 
     crs4326 = QgsCoordinateReferenceSystem(4326);
     setMapUnits(QGis::Meters);
@@ -129,10 +129,7 @@ void CnsMapCanvas::doZoomIn() {
 // --------------------------------------------------------------------------
 /** @brief CnsMapCanvas::doZoomExtent() auf gesamten Kartenausschnitt zoomen */
 void CnsMapCanvas::doZoomExtent(){
-    if (!qgis_image_layer_) return;
-    qDebug() << tr("ZOOM GANZE KARTE");
-    this->setExtent(qgis_image_layer_->extent());
-    this->refresh();
+    zoomToFullExtent();
 }
 
 // --------------------------------------------------------------------------
@@ -148,7 +145,7 @@ void CnsMapCanvas::doZoom1by1() {
  */
 void CnsMapCanvas::doModePan() {
 	qDebug() << tr("set MapMode PAN");
-    mapMode = MAP_MODE_INSPECT;
+	map_mode_ = MAP_MODE_INSPECT;
     setMapTool(qgsToolPan);
 }
 
@@ -159,7 +156,7 @@ void CnsMapCanvas::doModePan() {
 void CnsMapCanvas::doModeDigitize() {
 	ui->tbwObjects->selectionModel()->clearSelection();
 	qDebug() << tr("MODUS ERFASSUNG");
-    mapMode = MAP_MODE_DIGITIZE;
+    map_mode_ = MAP_MODE_DIGITIZE;
     setMapTool(qgsToolPoint);
 
 }
@@ -170,7 +167,7 @@ void CnsMapCanvas::doModeDigitize() {
 void CnsMapCanvas::doModeSelect() {
 	ui->tbwObjects->selectionModel()->clearSelection();
 	qDebug() << tr("MODUS AUSWAHL");
-	mapMode = MAP_MODE_SELECT;
+	map_mode_ = MAP_MODE_SELECT;
 	setMapTool(qgsToolPoint);
 	this->setCursor(Qt::ArrowCursor);
 }
@@ -211,7 +208,7 @@ void CnsMapCanvas::doCenter1by1(double x, double y) {
 void CnsMapCanvas::doUpdateStatus() {
     if (!qgis_image_layer_) return;
     QString strMode;
-    switch (mapMode) {
+    switch (map_mode_) {
     case MAP_MODE_DIGITIZE:
         strMode = "ERFASSUNG";
         break;
@@ -276,8 +273,8 @@ bool CnsMapCanvas::doCalcLonLat(const QgsPoint& point ,
                               double& lon, double& lat) {
 
     if (!qgis_image_layer_ ) return false;
-    if (!qgsTrfm2LonLat) return false;
-    QgsPoint pnt = qgsTrfm2LonLat->transform(point);
+    if (!qgsTrfm2LonLat.isInitialised()) return false;
+    QgsPoint pnt = qgsTrfm2LonLat.transform(point);
     lon = pnt.x(); lat = pnt.y();
    return true;
 }
@@ -326,7 +323,7 @@ bool CnsMapCanvas::doCalcWorldPos(const int pixX ,const int pixY,
 // --------------------------------------------------------------------------
 bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
 	bool done = true;
-	done = done &&	openEditLayer(config->prjPath(), cam, file);
+	done = done &&	openEditLayer(cam, file);
     done = done && openPolyLayer(cam, file);
     done = done && openRasterLayer(config->prjPath(), cam, file);
 
@@ -355,17 +352,6 @@ bool CnsMapCanvas::saveData(const QString cam, const QString file) {
 }
 
 // --------------------------------------------------------------------------
-int CnsMapCanvas::getMapMode() { return mapMode; }
-// --------------------------------------------------------------------------
-QgsFeatureId nextFeatureId(QgsVectorLayer* lyr) {
-    QgsFeatureIterator iter=lyr->getFeatures();
-    QgsFeature fet; QgsFeatureId id =0;
-    while (iter.nextFeature(fet) ) {
-        if (fet.id()>id) id = fet.id();
-    }
-    return id+1;
-}
-// --------------------------------------------------------------------------
 /**
  * @brief MainWindow::doMapCanvasClicked Einen Punkt markieren
  * @param point Geokoordinaten auf die geklickt wurden
@@ -377,7 +363,7 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
 
     if ( !(doHandleCoords(point) && button == Qt::LeftButton) ) return;
 
-    if (mapMode ==  MAP_MODE_DIGITIZE ) {
+    if (map_mode_ ==  MAP_MODE_DIGITIZE ) {
 
         int px, py;
         doCalcPixPos(point, px, py);
@@ -396,7 +382,7 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
 
         UpdateObjectMarkers();
 
-    } else if (mapMode ==  MAP_MODE_SELECT )  {
+    } else if (map_mode_ ==  MAP_MODE_SELECT )  {
     	SelectObjectByLocation(point);
     }
     doUpdateStatus();
@@ -404,11 +390,7 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
 }
 
 // --------------------------------------------------------------------------
-bool CnsMapCanvas::openEditLayer(
-                                   const QString imagePath,
-                                   const QString strCam,
-                                   const QString strFile) {
-	Q_UNUSED(imagePath);
+bool CnsMapCanvas::openEditLayer(const QString strCam, const QString strFile) {
 
 	if (qgis_edit_layer_ != 0) {
 		qgsLyrRegistry->removeMapLayer("EDIT");
@@ -517,8 +499,8 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
     setExtent(qgis_image_layer_->extent());
     qDebug() << "layerRegistry NUM.LAYER "+QString::number(qgsLyrRegistry->count());
     crsUTM = qgis_image_layer_->crs();
-    if (qgsTrfm2LonLat) delete qgsTrfm2LonLat;
-    qgsTrfm2LonLat = new QgsCoordinateTransform(crsUTM, crs4326);
+    qgsTrfm2LonLat.setSourceCrs(crsUTM);
+    qgsTrfm2LonLat.setDestCRS(crs4326);
 
     if (!db->readRawImage(config->prjUtmSector(),strCam, strFile,
                           config->appUser(), config->prjSession(),
