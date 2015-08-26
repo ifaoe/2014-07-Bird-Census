@@ -414,7 +414,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string>...</string>
                       </property>
                       <property name="icon">
-                       <iconset theme="go-previous"/>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/goPrevious.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/goPrevious.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -436,7 +437,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="go-next"/>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/goNext.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/goNext.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -461,9 +463,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="zoom-fit-best">
-                        <normalon>:/RCC/icons/mapFullExtent.png</normalon>
-                       </iconset>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapFullExtent.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapFullExtent.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -488,9 +489,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string>...</string>
                       </property>
                       <property name="icon">
-                       <iconset theme="zoom-original">
-                        <normalon>:/RCC/icons/mapZoom1by1.png</normalon>
-                       </iconset>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapZoom1by1.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapZoom1by1.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -515,9 +515,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="system-search">
-                        <normalon>:/RCC/icons/mapPan.png</normalon>
-                       </iconset>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapPan.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapPan.png</iconset>
                       </property>
                       <property name="checkable">
                        <bool>true</bool>
@@ -548,9 +547,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="contact-new">
-                        <normalon>:/RCC/icons/mapDigitize.png</normalon>
-                       </iconset>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapDigitize.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapDigitize.png</iconset>
                       </property>
                       <property name="checkable">
                        <bool>true</bool>
@@ -581,9 +579,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="emblem-shared">
-                        <normalon>:/RCC/icons/mapDeselect.png</normalon>
-                       </iconset>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapSelect.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/mapSelect.png</iconset>
                       </property>
                       <property name="checkable">
                        <bool>true</bool>
@@ -617,9 +614,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="edit-delete">
-                        <normalon>:/RCC/icons/mapRemove.png</normalon>
-                       </iconset>
+                       <iconset>
+                        <normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/tabRemove.png</normaloff>../../../../../../usr/local/ifaoe/settings/daisi/birdcensus/icons/tabRemove.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -956,7 +952,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="btgMapMode"/>
   <buttongroup name="button_group_types"/>
+  <buttongroup name="btgMapMode"/>
  </buttongroups>
 </ui>
