@@ -41,7 +41,6 @@ VPATH += ./ui
 FORMS    += mainwindow.ui
 
 unix: LIBS += -L/usr/lib/\
- -lgdal \
  -lqgis_core \
  -lqgis_gui \
  -lconfig++ \
