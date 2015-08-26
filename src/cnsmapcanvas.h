@@ -42,14 +42,6 @@
 
 class OvrMapCanvas;
 
-
-#ifdef OPENCV
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-typedef cv::Vec<quint16, 3> Vec3u16;
-typedef cv::Mat_<Vec3u16>  Mat3u16;
-#endif /* OPENCV */
-
 const int MAP_MODE_INSPECT  =  0;
 const int MAP_MODE_SELECT   = 10;
 const int MAP_MODE_DIGITIZE = 20;
@@ -98,11 +90,6 @@ public slots:
     void doHandleKeyPressed(QKeyEvent* keyEvent);
     void doHandleKeyReleased(QKeyEvent* keyEvent);
     void doUpdateStatus();
-
-#ifdef OPENCV
-    int mapImg2CV(const QgsPoint &point, double radius, int width, int height);
-    QImage mat2QImage8Bit(const cv::Mat3b &src);
-#endif /* OPENCV */
 
 
 private:

@@ -13,7 +13,6 @@
 #include <qgsvectordataprovider.h>
 #include <qgsmaptool.h>
 #include <qgsmaptoolemitpoint.h>
-#include <opencv2/core/core.hpp>
 #include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
