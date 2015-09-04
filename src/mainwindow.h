@@ -42,24 +42,24 @@ private:
     QItemSelectionModel *imgSelector= 0;
     QItemSelectionModel *objSelector= 0;
 
-    QString selected_file_;
-    QString selected_cam_;
+    QString selected_file;
+    QString selected_cam;
 
     QString filter = "WHERE TRUE";
-    QString cam_filter_ = "";
-    QString trac_filter_ = "";
-    QString image_filter_ = "";
+    QString cam_filter = "";
+    QString trac_filter = "";
+    QString image_filter = "";
 
     QString edtCurKey;
     QString edtCurView;
 
-    QComboBox * combobox_cam_filter_;
-    QComboBox * combobox_trac_filter_;
-    QLineEdit * lineedit_image_filter_;
+    QComboBox * combobox_cam_filter;
+    QComboBox * combobox_trac_filter;
+    QLineEdit * lineedit_image_filter;
 
     bool keyMarkerHide = false;
 
-    QSqlQueryModel* object_query_model_ = 0;
+    QSqlQueryModel* object_query_model = 0;
 
     CnsMapCanvas *mapCanvas = 0;
     OvrMapCanvas *ovrCanvas = 0;

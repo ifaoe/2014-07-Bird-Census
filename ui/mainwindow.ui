@@ -34,6 +34,9 @@
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <property name="spacing">
@@ -100,7 +103,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QToolBox" name="tbxTasks">
+           <widget class="QTabWidget" name="tbxTasks">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -126,10 +129,10 @@
              <enum>Qt::LeftToRight</enum>
             </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">QToolBox::tab {
+             <string notr="true">/*QToolBox::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
                                 stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
@@ -137,33 +140,16 @@
     color: darkgray;
 }
 
-QToolBox::tab:selected { /* italicize selected tabs */
+QToolBox::tab:selected { 
     font: italic;
     color: black;
-}</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Panel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Sunken</enum>
+}*/</string>
             </property>
             <property name="currentIndex">
-             <number>0</number>
-            </property>
-            <property name="tabSpacing">
              <number>1</number>
             </property>
-            <widget class="QWidget" name="pgFiles">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>250</width>
-               <height>700</height>
-              </rect>
-             </property>
-             <attribute name="label">
+            <widget class="QWidget" name="tbxTasksPage1">
+             <attribute name="title">
               <string>Bilddateien</string>
              </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -223,54 +209,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                   </widget>
                  </item>
                  <item>
-                  <widget class="QTableWidget" name="tbwFilters">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>250</width>
-                     <height>60</height>
-                    </size>
-                   </property>
-                   <property name="verticalScrollBarPolicy">
-                    <enum>Qt::ScrollBarAlwaysOff</enum>
-                   </property>
-                   <property name="horizontalScrollBarPolicy">
-                    <enum>Qt::ScrollBarAlwaysOff</enum>
-                   </property>
-                   <property name="editTriggers">
-                    <set>QAbstractItemView::NoEditTriggers</set>
-                   </property>
-                   <property name="selectionMode">
-                    <enum>QAbstractItemView::NoSelection</enum>
-                   </property>
-                   <property name="rowCount">
-                    <number>1</number>
-                   </property>
-                   <property name="columnCount">
-                    <number>3</number>
-                   </property>
-                   <attribute name="verticalHeaderVisible">
-                    <bool>false</bool>
-                   </attribute>
-                   <row/>
-                   <column/>
-                   <column/>
-                   <column/>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QTableWidget" name="tbvImages">
+                  <widget class="QFrozenRowTableWidget" name="image_table">
                    <property name="font">
                     <font>
                      <family>Courier New</family>
@@ -287,7 +226,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                     <enum>Qt::SolidLine</enum>
                    </property>
                    <property name="rowCount">
-                    <number>0</number>
+                    <number>1</number>
                    </property>
                    <property name="columnCount">
                     <number>3</number>
@@ -304,6 +243,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                    <attribute name="verticalHeaderVisible">
                     <bool>false</bool>
                    </attribute>
+                   <row/>
                    <column/>
                    <column/>
                    <column/>
@@ -314,28 +254,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
               </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="pgOverview">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>252</width>
-               <height>700</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>13</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>640</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <attribute name="label">
+            <widget class="QWidget" name="tbxTasksPage2">
+             <attribute name="title">
               <string>Dateneingabe</string>
              </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -355,7 +275,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                <number>2</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="wgdMapInfo">
+               <widget class="QFrame" name="wgdMapInfo">
                 <property name="maximumSize">
                  <size>
                   <width>249</width>
@@ -364,7 +284,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_4">
                  <property name="spacing">
-                  <number>3</number>
+                  <number>0</number>
                  </property>
                  <property name="leftMargin">
                   <number>0</number>
@@ -382,19 +302,19 @@ QToolBox::tab:selected { /* italicize selected tabs */
                   <widget class="QWidget" name="wdgMapTabButtons" native="true">
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <property name="spacing">
-                     <number>3</number>
+                     <number>0</number>
                     </property>
                     <property name="leftMargin">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <property name="topMargin">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <property name="rightMargin">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <item>
                      <widget class="QToolButton" name="btnPrevTile">
@@ -403,7 +323,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                       </property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
@@ -426,7 +346,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                       </property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
@@ -446,14 +366,14 @@ QToolBox::tab:selected { /* italicize selected tabs */
                      <widget class="QToolButton" name="btnMapZoomExtent">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>24</width>
-                        <height>24</height>
+                        <width>0</width>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -472,14 +392,14 @@ QToolBox::tab:selected { /* italicize selected tabs */
                      <widget class="QToolButton" name="btnMapZoom1by1">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>24</width>
-                        <height>24</height>
+                        <width>0</width>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -498,14 +418,14 @@ QToolBox::tab:selected { /* italicize selected tabs */
                      <widget class="QToolButton" name="btnMapPan">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>24</width>
-                        <height>24</height>
+                        <width>0</width>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -530,14 +450,14 @@ QToolBox::tab:selected { /* italicize selected tabs */
                      <widget class="QToolButton" name="btnMapDigitize">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>24</width>
-                        <height>24</height>
+                        <width>0</width>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -562,14 +482,14 @@ QToolBox::tab:selected { /* italicize selected tabs */
                      <widget class="QToolButton" name="btnMapSelect">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>24</width>
-                        <height>24</height>
+                        <width>0</width>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -597,14 +517,14 @@ QToolBox::tab:selected { /* italicize selected tabs */
                       </property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
+                        <horstretch>1</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>24</width>
-                        <height>24</height>
+                        <width>0</width>
+                        <height>0</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -624,6 +544,12 @@ QToolBox::tab:selected { /* italicize selected tabs */
                  </item>
                  <item>
                   <widget class="QWidget" name="wdgOverview" native="true">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>240</width>
@@ -632,8 +558,8 @@ QToolBox::tab:selected { /* italicize selected tabs */
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>240</width>
-                     <height>240</height>
+                     <width>16777215</width>
+                     <height>16777215</height>
                     </size>
                    </property>
                   </widget>
@@ -732,7 +658,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="gbxLyrSelect">
+               <widget class="QFrame" name="gbxLyrSelect">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                   <horstretch>0</horstretch>
@@ -747,24 +673,24 @@ QToolBox::tab:selected { /* italicize selected tabs */
                 </property>
                 <layout class="QGridLayout" name="gridLayout">
                  <property name="leftMargin">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <property name="spacing">
                   <number>1</number>
                  </property>
-                 <item row="1" column="0">
+                 <item row="3" column="0">
                   <widget class="QRadioButton" name="rbVS">
                    <property name="text">
-                    <string>Vogel sw.</string>
+                    <string>Vo&amp;gel sw.</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>
@@ -777,27 +703,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
                    </attribute>
                   </widget>
                  </item>
-                 <item row="1" column="1">
-                  <widget class="QRadioButton" name="rbUFO">
-                   <property name="text">
-                    <string>unbekannt</string>
-                   </property>
-                   <property name="dbvalue" stdset="0">
-                    <string>UO</string>
-                   </property>
-                   <attribute name="buttonGroup">
-                    <string notr="true">button_group_types</string>
-                   </attribute>
-                  </widget>
-                 </item>
-                 <item row="0" column="0" colspan="2">
-                  <widget class="QCheckBox" name="chbHideMarker">
-                   <property name="text">
-                    <string>Markierung ausblenden</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
+                 <item row="4" column="0">
                   <widget class="QRadioButton" name="rbVF">
                    <property name="text">
                     <string>Vogel fl.</string>
@@ -810,10 +716,17 @@ QToolBox::tab:selected { /* italicize selected tabs */
                    </attribute>
                   </widget>
                  </item>
-                 <item row="2" column="1">
+                 <item row="1" column="0" colspan="2">
+                  <widget class="QCheckBox" name="chbHideMarker">
+                   <property name="text">
+                    <string>Markierung ausblenden</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="0">
                   <widget class="QRadioButton" name="rbMM">
                    <property name="text">
-                    <string>Wal/ Robbe</string>
+                    <string>Meeress&amp;äuger</string>
                    </property>
                    <property name="dbvalue" stdset="0">
                     <string>MM</string>
@@ -823,13 +736,26 @@ QToolBox::tab:selected { /* italicize selected tabs */
                    </attribute>
                   </widget>
                  </item>
-                 <item row="3" column="0">
-                  <widget class="QRadioButton" name="rbAN">
+                 <item row="4" column="1">
+                  <widget class="QRadioButton" name="rbUFO">
                    <property name="text">
-                    <string>anthropogen</string>
+                    <string>&amp;unbekannt</string>
                    </property>
                    <property name="dbvalue" stdset="0">
-                    <string>AN</string>
+                    <string>UO</string>
+                   </property>
+                   <attribute name="buttonGroup">
+                    <string notr="true">button_group_types</string>
+                   </attribute>
+                  </widget>
+                 </item>
+                 <item row="5" column="1">
+                  <widget class="QRadioButton" name="rbTR">
+                   <property name="text">
+                    <string>M&amp;üll</string>
+                   </property>
+                   <property name="dbvalue" stdset="0">
+                    <string>TR</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">button_group_types</string>
@@ -837,12 +763,12 @@ QToolBox::tab:selected { /* italicize selected tabs */
                   </widget>
                  </item>
                  <item row="3" column="1">
-                  <widget class="QRadioButton" name="rbTR">
+                  <widget class="QRadioButton" name="rbAN">
                    <property name="text">
-                    <string>Müll</string>
+                    <string>an&amp;thropogen</string>
                    </property>
                    <property name="dbvalue" stdset="0">
-                    <string>TR</string>
+                    <string>AN</string>
                    </property>
                    <attribute name="buttonGroup">
                     <string notr="true">button_group_types</string>
@@ -854,6 +780,9 @@ QToolBox::tab:selected { /* italicize selected tabs */
               </item>
               <item>
                <widget class="QTableView" name="tbwObjects">
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
                 <property name="editTriggers">
                  <set>QAbstractItemView::NoEditTriggers</set>
                 </property>
@@ -865,6 +794,9 @@ QToolBox::tab:selected { /* italicize selected tabs */
                 </property>
                 <property name="selectionBehavior">
                  <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <property name="horizontalScrollMode">
+                 <enum>QAbstractItemView::ScrollPerPixel</enum>
                 </property>
                 <attribute name="verticalHeaderVisible">
                  <bool>false</bool>
@@ -932,7 +864,7 @@ QToolBox::tab:selected { /* italicize selected tabs */
              <enum>Qt::LeftToRight</enum>
             </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -947,12 +879,19 @@ QToolBox::tab:selected { /* italicize selected tabs */
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QFrozenRowTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>src/QtExtension/QFrozenRowTableWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
-  <include location="../resource.qrc"/>
+  <include location="style.qrc"/>
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="button_group_types"/>
   <buttongroup name="btgMapMode"/>
+  <buttongroup name="button_group_types"/>
  </buttongroups>
 </ui>

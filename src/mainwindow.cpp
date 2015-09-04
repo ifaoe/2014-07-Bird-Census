@@ -34,17 +34,26 @@ MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
 	ui->tbwObjects->hideColumn(6);
 	ui->tbwObjects->hideColumn(7);
 	ui->tbwObjects->hideColumn(8);
+	ui->tbwObjects->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 	ui->tbwObjects->horizontalHeader()->setStretchLastSection(true);
+	ui->tbwObjects->setBackgroundRole(QPalette::Base);
+	ui->tbwObjects->setAutoFillBackground( true );
+
+//	QPalette dark_palette = ui->tbwObjects->palette();
+//	ui->tbwObjects->viewport()->setBackgroundRole(QPalette::AlternateBase);
+////	dark_palette.setColor(QPalette::Window, Qt::lightGray);
+//	dark_palette.setColor(QPalette::AlternateBase, Qt::gray);
+//	ui->tbwObjects->setPalette(dark_palette);
 
 	initFilters();
 	initSessionFrame();
 
-    object_query_model_ = new QSqlQueryModel;
-    ui->tbwObjects->setModel(object_query_model_);
+    object_query_model = new QSqlQueryModel;
+    ui->tbwObjects->setModel(object_query_model);
 
-    imgSelector = ui->tbvImages->selectionModel();
-    ui->tbvImages->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui->tbvImages->setSelectionBehavior(QAbstractItemView::SelectRows);
+    imgSelector = ui->image_table->selectionModel();
+    ui->image_table->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui->image_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     objSelector = ui->tbwObjects->selectionModel();
     ui->tbwObjects->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -155,7 +164,7 @@ void MainWindow::guiInitAdditionals() {
 void MainWindow::deleteSelection() {
 	QModelIndex index = objSelector->selectedRows(0).at(0);
 	int rcns_id = ui->tbwObjects->model()->data(index).toInt();
-	db->deleteRawCensus(rcns_id, selected_cam_, selected_file_, config->appUser());
+	db->deleteRawCensus(rcns_id, selected_cam, selected_file, config->appUser());
 	mapCanvas->UpdateObjectMarkers();
 }
 
@@ -178,11 +187,11 @@ void MainWindow::objUpdateSelection() {
 
     mapCanvas->DeselectObjects();
 
-    int rcns_id =  object_query_model_->data(objSelector->selectedRows(0).at(0)).toInt();
-    QString user = object_query_model_->data(objSelector->selectedRows(1).at(0)).toString();
-    QString type = object_query_model_->data(objSelector->selectedRows(2).at(0)).toString();
-	double utm_x = object_query_model_->data(objSelector->selectedRows(3).at(0)).toDouble();
-	double utm_y = object_query_model_->data(objSelector->selectedRows(4).at(0)).toDouble();
+    int rcns_id =  object_query_model->data(objSelector->selectedRows(0).at(0)).toInt();
+    QString user = object_query_model->data(objSelector->selectedRows(1).at(0)).toString();
+    QString type = object_query_model->data(objSelector->selectedRows(2).at(0)).toString();
+	double utm_x = object_query_model->data(objSelector->selectedRows(3).at(0)).toDouble();
+	double utm_y = object_query_model->data(objSelector->selectedRows(4).at(0)).toDouble();
 
 	mapCanvas->doCenter1by1(utm_x,utm_y);
 	if (mapCanvas->map_mode() == MAP_MODE_SELECT) {
@@ -200,8 +209,8 @@ void MainWindow::imgUpdateSelection()
 
 	objSelector->clearSelection();
 	int currentRow = imgSelector->selectedRows().at(0).row();
-	selected_file_ = QString(ui->tbvImages->item(currentRow, 2)->text());
-	selected_cam_  = QString(ui->tbvImages->item(currentRow, 1)->text());
+	selected_file = QString(ui->image_table->item(currentRow, 2)->text());
+	selected_cam  = QString(ui->image_table->item(currentRow, 1)->text());
 
 	  ui->chbHideMarker->setChecked(false);
 	  if (!mapCanvas->doSaveData(config->curCam, config->curImg)) {
@@ -212,39 +221,43 @@ void MainWindow::imgUpdateSelection()
 		  imgSelector->clearSelection();
 		  return;
 	  }
-	  if (!mapCanvas->doOpenRasterLayer(selected_cam_, selected_file_)) {
+	  if (!mapCanvas->doOpenRasterLayer(selected_cam, selected_file)) {
 		  QMessageBox::critical(this,"Fehler beim Laden Bilddatei",
-		  "Bild "+selected_file_+" Kamera "+selected_cam_+
+		  "Bild "+selected_file+" Kamera "+selected_cam+
 		  "\n konnte nicht geoeffnet werden!","OK");
 		  imgSelector->clearSelection();
 		  return;
 	  }
-	  if (!ovrCanvas->openImageEnvelope(selected_cam_, selected_file_, mapCanvas->extent())) {
+	  if (!ovrCanvas->openImageEnvelope(selected_cam, selected_file, mapCanvas->extent())) {
 		  QMessageBox::critical(this,"Fehler beim Laden der Envelope",
-		  "Envelope fuer Bild "+selected_file_+" Kamera "+selected_cam_+
+		  "Envelope fuer Bild "+selected_file+" Kamera "+selected_cam+
 		  "\n konnte nicht geoeffnet werden!","OK");
 		  imgSelector->clearSelection();
 		  return;
 	  }
-	  if (!ovrCanvas->openImageTiles(selected_cam_, selected_file_)) {
+	  if (!ovrCanvas->openImageTiles(selected_cam, selected_file)) {
 		  QMessageBox::critical(this,"Fehler beim Laden der Tiles",
-		  "Tiles fuer Bild "+selected_file_+" Kamera "+selected_cam_+
+		  "Tiles fuer Bild "+selected_file+" Kamera "+selected_cam+
 		  "\n konnte nicht geoeffnet werden!","OK");
 		  imgSelector->clearSelection();
 		  return;
 	  }
 	  this->setWindowTitle(config->appTitle()+" - "+config->appVersion()+" - Kamera "
-			  + selected_cam_ +" - "+selected_file_);
+			  + selected_cam +" - "+selected_file);
 	  ovrCanvas->doSelectFirstTile();
 
-	  config->curCam = selected_cam_;
-	  config->curImg = selected_file_;
+	  config->curCam = selected_cam;
+	  config->curImg = selected_file;
 
 	  ui->tbxTasks->setCurrentIndex(1);
 	  mapCanvas->setFocus();
 	  mapCanvas->doSetupEditModus();
 
-	  db->UpdateObjectQuery(selected_cam_, selected_file_, object_query_model_);
+	  db->UpdateObjectQuery(selected_cam, selected_file, object_query_model);
+	  ui->tbwObjects->hideColumn(3);
+	  ui->tbwObjects->hideColumn(4);
+	  ui->tbwObjects->hideColumn(5);
+	  ui->tbwObjects->hideColumn(6);
 	  mapCanvas->UpdateObjectMarkers();
 
  }
@@ -265,8 +278,8 @@ bool MainWindow::checkButtonByKey(QString tp) {
 }
 
 void MainWindow::initSessionFrame() {
-	combobox_cam_filter_->setEnabled(false);
-	combobox_trac_filter_->setEnabled(false);
+	combobox_cam_filter->setEnabled(false);
+	combobox_trac_filter->setEnabled(false);
 	ui->cmbSession->addItem("");
 	ui->cmbSession->addItems(db->getSessionList());
 }
@@ -283,82 +296,84 @@ void MainWindow::handleSessionSelection() {
     config->setPrjUtmSector(prj->utmSector);
     config->setPrjPath(prj->path);
     delete prj;
-    combobox_cam_filter_->clear();
-    combobox_trac_filter_->clear();
-    combobox_cam_filter_->setEnabled(true);
-    combobox_trac_filter_->setEnabled(true);
-	combobox_cam_filter_->addItem("");
-	combobox_cam_filter_->addItems(db->getCamList(config->prjFlight()));
-	combobox_cam_filter_->setCurrentIndex(0);
-	combobox_trac_filter_->addItem("");
-	combobox_trac_filter_->addItems(db->getTrcList(config->prjFlight()));
-	combobox_trac_filter_->setCurrentIndex(0);
-	db->getImages(ui->tbvImages, config->prjType(), "TRUE", ui->chbNotReady->isChecked());
+    combobox_cam_filter->clear();
+    combobox_trac_filter->clear();
+    combobox_cam_filter->setEnabled(true);
+    combobox_trac_filter->setEnabled(true);
+	combobox_cam_filter->addItem("");
+	combobox_cam_filter->addItems(db->getCamList(config->prjFlight()));
+//	combobox_cam_filter->setMinimumWidth(combobox_cam_filter->minimumSize().width());
+	combobox_cam_filter->setCurrentIndex(0);
+	combobox_trac_filter->addItem("");
+	combobox_trac_filter->addItems(db->getTrcList(config->prjFlight()));
+	combobox_trac_filter->setCurrentIndex(0);
+
+	db->getImages(ui->image_table, config->prjType(), "TRUE", ui->chbNotReady->isChecked());
 }
 
 void MainWindow::initFilters() {
-	ui->tbwFilters->setColumnCount(3);
-	ui->tbwFilters->setColumnWidth(0,50);
-	ui->tbwFilters->setColumnWidth(1,50);
-	ui->tbwFilters->setHorizontalHeaderLabels(QStringList() << "TRC" << "CAM" << "IMG");
-	ui->tbwFilters->horizontalHeader()->setStretchLastSection(true);
+	ui->image_table->setColumnCount(3);
+	ui->image_table->setColumnWidth(0,60);
+	ui->image_table->setColumnWidth(1,60);
+	ui->image_table->setHorizontalHeaderLabels(QStringList() << "TRC" << "CAM" << "IMG");
+	ui->image_table->horizontalHeader()->setStretchLastSection(true);
 
-	combobox_cam_filter_ = new QComboBox();
-	combobox_trac_filter_ = new QComboBox();
-	lineedit_image_filter_ = new QLineEdit();
+	combobox_cam_filter = new QComboBox();
+	combobox_trac_filter = new QComboBox();
+	lineedit_image_filter = new QLineEdit();
 
-	ui->tbwFilters->setCellWidget(0,0,combobox_trac_filter_);
-	ui->tbwFilters->setCellWidget(0,1,combobox_cam_filter_);
-	ui->tbwFilters->setCellWidget(0,2,lineedit_image_filter_);
+	ui->image_table->setCellWidget(0,0,combobox_trac_filter);
+	ui->image_table->setCellWidget(0,1,combobox_cam_filter);
+	ui->image_table->setCellWidget(0,2,lineedit_image_filter);
 
-    connect( combobox_cam_filter_, SIGNAL(currentIndexChanged(int)), this, SLOT(handleCamFilter()));
-    connect( combobox_trac_filter_, SIGNAL(currentIndexChanged(int)), this, SLOT(handleTrcFilter()));
-    connect( lineedit_image_filter_, SIGNAL(returnPressed()), this, SLOT(handleImgFilter()));
+    connect( combobox_cam_filter, SIGNAL(currentIndexChanged(int)), this, SLOT(handleCamFilter()));
+    connect( combobox_trac_filter, SIGNAL(currentIndexChanged(int)), this, SLOT(handleTrcFilter()));
+    connect( lineedit_image_filter, SIGNAL(returnPressed()), this, SLOT(handleImgFilter()));
     connect( ui->chbNotReady, SIGNAL(stateChanged(int)), this, SLOT(handleMissingCheckBox()));
 }
 
 void MainWindow::handleCamFilter() {
 	// if last value (all cameras) is selected show all columns
 	// else only show selected column
-	QString cam = combobox_cam_filter_->currentText();
+	QString cam = combobox_cam_filter->currentText();
 	if(!cam.isEmpty()) {
-		cam_filter_ = " AND cam LIKE '" + cam + "'";
+		cam_filter = " AND cam LIKE '" + cam + "'";
 	} else {
-		cam_filter_ = "";
+		cam_filter = "";
 	}
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleTrcFilter() {
-	QString trc = combobox_trac_filter_->currentText();
+	QString trc = combobox_trac_filter->currentText();
 	if (!trc.isEmpty()) {
-		trac_filter_ = " AND trc=" + trc;
+		trac_filter = " AND trc=" + trc;
 	} else {
-		trac_filter_ = "";
+		trac_filter = "";
 	}
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleImgFilter() {
-	QString img = lineedit_image_filter_->text();
+	QString img = lineedit_image_filter->text();
 	if (!img.isEmpty()) {
 		if (img.startsWith("hd",Qt::CaseInsensitive))
-			image_filter_ = " AND img LIKE 'HD" + img.remove(0,2) + "'";
+			image_filter = " AND img LIKE 'HD" + img.remove(0,2) + "'";
 		else
-			image_filter_ = " AND img LIKE 'HD" + img + "'";
+			image_filter = " AND img LIKE 'HD" + img + "'";
 	} else {
-		image_filter_ = "";
+		image_filter = "";
 	}
 
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 QString MainWindow::getFilterString() {
-	return "TRUE" + cam_filter_ + trac_filter_ + image_filter_;
+	return "TRUE" + cam_filter + trac_filter + image_filter;
 }
 
 void MainWindow::handleMissingCheckBox() {
-	db->getImages(ui->tbvImages, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
 }
 
 QAbstractButton * MainWindow::GetButtonByKey(QButtonGroup * button_group, QString key, QString value) {
@@ -372,5 +387,5 @@ QAbstractButton * MainWindow::GetButtonByKey(QButtonGroup * button_group, QStrin
 }
 
 void MainWindow::RefreshObjectList() {
-	object_query_model_->query().exec();
+	object_query_model->query().exec();
 }

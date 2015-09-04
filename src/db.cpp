@@ -340,7 +340,7 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
 	result->clearSelection();
 	result->clearContents();
 //	result->clear();
-	result->setRowCount(0);
+	result->setRowCount(1);
 	if (missing)
 		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_NOT_READY).arg(filter);
 	else
@@ -355,12 +355,13 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
     QStringList rdy_cam1, rdy_cam2;
     readImageDone(QString("1"), rdy_cam1);
     readImageDone(QString("2"),rdy_cam2 );
-    result->setRowCount(req.size());
-    result->setColumnCount(3);
-    result->horizontalHeader()->setStretchLastSection(true);
-    result->setColumnWidth(0, 50);
-    result->setColumnWidth(1, 50);
+    result->setRowCount(req.size()+1);
+//    result->setColumnCount(3);
+//    result->horizontalHeader()->setStretchLastSection(true);
+//    result->setColumnWidth(0, 50);
+//    result->setColumnWidth(1, 50);
 //    result->setColumnWidth(2, 50);
+    int row = 1;
     while (req.next()) {
         QTableWidgetItem *wtrc = new QTableWidgetItem(QString(req.value(0).toString()));
         QTableWidgetItem *wcam = new QTableWidgetItem(QString(req.value(1).toString()));
@@ -369,22 +370,23 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
         wtrc->setTextAlignment(Qt::AlignHCenter);
         wcam->setTextAlignment(Qt::AlignHCenter);
         wimg->setTextAlignment(Qt::AlignHCenter);
-        result->setItem(req.at(), 0, wtrc);
-        result->setItem(req.at(), 1, wcam);
-        result->setItem(req.at(), 2, wimg);
+        result->setItem(row, 0, wtrc);
+        result->setItem(row, 1, wcam);
+        result->setItem(row, 2, wimg);
         if ( req.value(1).toInt() == 1) {
         	if( rdy_cam1.contains( req.value(2).toString() )) {
-        		result->item(req.at(), 0)->setBackgroundColor(Qt::green);
-        		result->item(req.at(), 1)->setBackgroundColor(Qt::green);
-        		result->item(req.at(), 2)->setBackgroundColor(Qt::green);
+        		result->item(row, 0)->setBackgroundColor(Qt::darkGreen);
+        		result->item(row, 1)->setBackgroundColor(Qt::darkGreen);
+        		result->item(row, 2)->setBackgroundColor(Qt::darkGreen);
         	}
         } else if (req.value(1).toInt() == 2) {
 			if (rdy_cam2.contains(req.value(2).toString() )) {
-        		result->item(req.at(), 0)->setBackgroundColor(Qt::green);
-        		result->item(req.at(), 1)->setBackgroundColor(Qt::green);
-        		result->item(req.at(), 2)->setBackgroundColor(Qt::green);
+        		result->item(row, 0)->setBackgroundColor(Qt::darkGreen);
+        		result->item(row, 1)->setBackgroundColor(Qt::darkGreen);
+        		result->item(row, 2)->setBackgroundColor(Qt::darkGreen);
 			}
 		}
+        row++;
     }
 
     return true;

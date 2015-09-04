@@ -7,7 +7,22 @@
 int main(int argc, char *argv[])
 {
     // Applikation initialisieren
+   	QCoreApplication::setOrganizationName("ifaoe");
+   	QCoreApplication::setOrganizationDomain("ifaoe.de");
+   	QCoreApplication::setApplicationName("daisi-bird-census");
+	QIcon::setThemeName("gnome");
+	QStringList theme_paths;
+	theme_paths << "/usr/share/icons/";
+	QIcon::setThemeSearchPaths(theme_paths);
     QApplication app(argc, argv);
+    QFile file(":qdarkstyle/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+//    QApplication::setDesktopSettingsAware(false);
+//    QApplication::setStyle("qdarkstyle");
 
     Defs *defaultSettings = new Defs(argc,argv);
     AppConfig* config = new AppConfig(defaultSettings);

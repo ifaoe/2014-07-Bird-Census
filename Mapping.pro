@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     defs.cpp \
     imagetile.cpp \
     ovrmapcanvas.cpp \
-    QgsMapMarker.cpp
+    QgsMapMarker.cpp \
+    QtExtension/QFrozenRowTableWidget.cpp 
 
 HEADERS  += mainwindow.h \
     cnsmapcanvas.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     defs.h \
     imagetile.h \
     ovrmapcanvas.h \
-    QgsMapMarker.h
+    QgsMapMarker.h \
+    QtExtension/QFrozenRowTableWidget.h
 
 VPATH += ./ui
 FORMS    += mainwindow.ui
@@ -45,6 +47,8 @@ unix: LIBS += -L/usr/lib/\
  -lqgis_gui \
  -lconfig++ \
  -lboost_date_time
+ 
+RESOURCES += ui/style.qrc
 
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/include/qgis
