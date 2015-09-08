@@ -258,7 +258,7 @@ void MainWindow::imgUpdateSelection()
 	  ui->tbwObjects->hideColumn(6);
 	  mapCanvas->UpdateObjectMarkers();
 	  mapCanvas->setEnabled(true);
-	  mapCanvas->setEnabled(true);
+	  ovrCanvas->setEnabled(true);
  }
 // ----------------------------------------------------------------------
 

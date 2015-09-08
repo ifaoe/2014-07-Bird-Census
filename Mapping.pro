@@ -48,6 +48,7 @@ unix: LIBS += -L/usr/lib/\
  -lqgis_core \
  -lqgis_gui \
  -lconfig++ \
+ -lgdal
  
 RESOURCES += ui/style.qrc
 
