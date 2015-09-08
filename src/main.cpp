@@ -1,8 +1,9 @@
 #include <QApplication>
 #include <qgsapplication.h>
 #include "mainwindow.h"
-#include "defs.h"
-#include "appconfig.h"
+#include "ConfigHandler.h"
+#include "ServerSelection.h"
+#include <QInputDialog>
 
 int main(int argc, char *argv[])
 {
@@ -21,23 +22,31 @@ int main(int argc, char *argv[])
         app.setStyleSheet(file.readAll());
         file.close();
     }
-//    QApplication::setDesktopSettingsAware(false);
-//    QApplication::setStyle("qdarkstyle");
 
-    Defs *defaultSettings = new Defs(argc,argv);
-    AppConfig* config = new AppConfig(defaultSettings);
+    ConfigHandler* config = new ConfigHandler();
+    config->InitSettings();
 
     // Einlesen der Datenbankparameter
     Db * db = new Db(config);
-    db->initConfig();
 
     // Qgis Pfad setzen und Provider laden
-    QgsApplication::setPrefixPath(config->qgsPrefixPath(), true);
+    QgsApplication::setPrefixPath(config->getQGisPrefixPath(), true);
     QgsApplication::initQgis();
+
+    if (config->getPreferredDatabase().isEmpty() || !config->getDatabaseList().contains(config->getPreferredDatabase())) {
+		ServerSelection server_selection(config);
+		server_selection.exec();
+		if (server_selection.result() == QDialog::Rejected)
+			return 1;
+    }
+    db->OpenDatabase();
 
     // Applikation starten
     MainWindow win(config, db);
-    win.show();
+    if(config->getAppMaximized())
+    	win.showMaximized();
+	else
+    	win.show();
     int result = app.exec();
     win.saveData();
 
@@ -46,7 +55,6 @@ int main(int argc, char *argv[])
 
     // Konfiguration freigeben
     delete config;
-    delete defaultSettings;
     delete db;
 
 

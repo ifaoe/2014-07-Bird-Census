@@ -21,26 +21,28 @@ VPATH += ./src
 SOURCES += main.cpp\
     mainwindow.cpp \
     cnsmapcanvas.cpp \
-    appconfig.cpp \
     db.cpp \
-    defs.cpp \
-    imagetile.cpp \
     ovrmapcanvas.cpp \
     QgsMapMarker.cpp \
-    QtExtension/QFrozenRowTableWidget.cpp 
+    QtExtension/QFrozenRowTableWidget.cpp  \
+    ConfigHandler.cpp \
+    ServerSettings.cpp \
+    ServerSelection.cpp
 
 HEADERS  += mainwindow.h \
     cnsmapcanvas.h \
-    appconfig.h \
     db.h \
-    defs.h \
-    imagetile.h \
     ovrmapcanvas.h \
     QgsMapMarker.h \
-    QtExtension/QFrozenRowTableWidget.h
+    QtExtension/QFrozenRowTableWidget.h \
+    ConfigHandler.h \
+    ServerSettings.h \
+    ServerSelection.h
 
 VPATH += ./ui
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+            server_settings.ui\
+            server_selection.ui
 
 unix: LIBS += -L/usr/lib/\
  -lqgis_core \

@@ -35,7 +35,6 @@
 #include <qgsmarkersymbollayerv2.h>
 #include <qgsvectorlayer.h>
 #include <qgsvectordataprovider.h>
-#include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
 #include "QgsMapMarker.h"
@@ -52,7 +51,7 @@ class CnsMapCanvas : public QgsMapCanvas
 public:
     explicit CnsMapCanvas(QWidget* parent,
                           Ui::MainWindow* aUI,
-                    const AppConfig* aConfig,
+                    ConfigHandler* aConfig,
                     Db* aDB,
                     QgsMapLayerRegistry* lyrRegistry
              );
@@ -94,7 +93,7 @@ public slots:
 
 private:
     Ui::MainWindow* ui = 0;
-    const AppConfig* config;
+    ConfigHandler* config;
     Db* db;
     QgsMapLayerRegistry* qgsLyrRegistry = 0;
     OvrMapCanvas* ovrCanvas;

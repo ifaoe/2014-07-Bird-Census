@@ -13,7 +13,6 @@
 #include <qgsvectordataprovider.h>
 #include <qgsmaptool.h>
 #include <qgsmaptoolemitpoint.h>
-#include "appconfig.h"
 #include "db.h"
 #include "ui_mainwindow.h"
 
@@ -25,7 +24,7 @@ class OvrMapCanvas : public QgsMapCanvas
     public:
         explicit OvrMapCanvas(QWidget *parent,
                               Ui::MainWindow* aUI,
-                              const AppConfig* aConfig,
+                              ConfigHandler* aConfig,
                               Db* aDB, CnsMapCanvas *aImgCanvas,
                               QgsMapLayerRegistry* lyrRegistry);
 
@@ -46,8 +45,8 @@ class OvrMapCanvas : public QgsMapCanvas
 
     private:
         Ui::MainWindow* ui = 0;
-        const AppConfig* config;
-        Db* db;
+        ConfigHandler* config;
+        Db* db = 0;
         CnsMapCanvas* imgCanvas;
 
         int rawImgTileID = -1;
@@ -57,6 +56,7 @@ class OvrMapCanvas : public QgsMapCanvas
         QString rawImgTileH  = "";
         QString rawImgTileUX = "";
         QString rawImgTileUY = "";
+
         bool isCurTile  = false;
         double  curTileW  = 0;
         double  curTileH  = 0;

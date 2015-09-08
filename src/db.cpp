@@ -4,75 +4,37 @@
 #include <iostream>
 #include <QHeaderView>
 
-Db::Db(AppConfig *aConfig) :
-    config(aConfig)
+Db::Db(ConfigHandler *aConfig) : config(aConfig)
 {
+    db = new QSqlDatabase();
+    *db = QSqlDatabase::addDatabase("QPSQL");
+
+    if (!db->isValid()) {
+        qFatal("Database invalid: QPSQL");
+    }
 }
 
-void Db::initConfig() {
+bool Db::OpenDatabase() {
+	if (config->getPreferredDatabase().isEmpty())
+		return false;
 
-    const Setting &root = config->root();
-    const Setting &section = config->readGroup(root, "database", "Datenbankkonfiguration");
-    AppConfig::readQString(section,
-                        DB_CFGIO_KEY_DRVN,
-                        driver,
-                        DB_CFGIO_DEF_DRVN,
-                        DB_CFGIO_HLP_DRVN,
-                        false);
+	if (db->isOpen()) {
+		db->close();
+	}
 
-    db = QSqlDatabase::addDatabase(driver);
-    if (! db.isValid() ) {
-        qFatal(DB_ERR_CFG_DRIVER,
-               DB_CFGIO_KEY_DRVN, driver.toStdString().c_str(),
-               sectionKey, section.getSourceFile(), section.getSourceLine());
+	DatabaseInfo info = config->getDatabaseInfo(config->getPreferredDatabase());
+	if (info.id.isEmpty())
+		return false;
+    db->setHostName(info.host);
+    db->setDatabaseName(info.name);
+    db->setPort(info.port);
+    db->setUserName(info.user);
+    db->setPassword(info.password);
+    qDebug() << "Opening Database " + db->databaseName()+ " on Host " + db->hostName() + ".";
+    if (!db->open()) {
+        qFatal("Could not open Database");
     }
-
-    AppConfig::readQString(section,
-                        DB_CFGIO_KEY_HOST,
-                        host,
-                        DB_CFGIO_DEF_HOST,
-                        DB_CFGIO_HLP_HOST, false);
-
-    AppConfig::readQString(section,
-                        DB_CFGIO_KEY_NAME, name,
-                        DB_CFGIO_DEF_EMPTY,
-                        DB_CFGIO_HLP_NAME, true);
-
-    AppConfig::readInteger(section,
-                        DB_CFGIO_KEY_PORT,
-                        port,
-                        DB_CFGIO_DEF_PORT,
-                        DB_CFGIO_HLP_PORT, false);
-
-    AppConfig::readQString(section,
-                        DB_CFGIO_KEY_USER,
-                        user,
-                        DB_CFGIO_DEF_EMPTY,
-                        DB_CFGIO_HLP_PASS, true);
-
-    AppConfig::readQString(section,
-                        DB_CFGIO_KEY_PASS,
-                        pass,
-                        DB_CFGIO_DEF_EMPTY,
-                        DB_CFGIO_HLP_PASS, false);
-
-    db.setHostName(host);
-    db.setDatabaseName(name);
-    db.setUserName(user);
-    db.setPassword(pass);
-    db.setPort(port);
-    QString strPort = ":"+QString::number(port);
-    uri = user+":"+pass+"@"+driver+"://"+host+strPort+"/"+name;
-    if ( db.open() ) {
-//        out->log("OPEN DATABASE "+uri);
-    	qDebug() << "OPEN DATABASE "+uri;
-    } else {
-
-        QString msg = db.lastError().text();
-        qFatal(DB_ERR_OPEN_DB,
-               uri.toStdString().c_str(),
-               msg.toStdString().c_str());
-    }
+    return true;
 }
 
 // -------------------------------------------------------
@@ -80,8 +42,8 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
                                   const QString image) {
 
     QgsGeometry* geom = 0;
-    QString query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMGENV.arg(cam).arg(image));
-    QSqlQuery req(db);
+    QString query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMGENV.arg(cam).arg(image));
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
 //        out->error(req.lastError().text());
     	qDebug() << req.lastError().text();
@@ -105,8 +67,8 @@ QgsGeometry* Db::readImageEnvelope(const QString cam,
 QgsGeometry* Db::readValidPolygon(const QString cam, const QString image) {
 
     QgsGeometry* geom = 0;
-    QString query = config->replacePrjSettings(ACFG_SQL_QRY_READ_VALIDPOLY).arg(cam).arg(image);
-    QSqlQuery req(db);
+    QString query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_VALIDPOLY).arg(cam).arg(image);
+    QSqlQuery req;
     qDebug() << query;
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
@@ -120,16 +82,12 @@ QgsGeometry* Db::readValidPolygon(const QString cam, const QString image) {
 }
 
 // -------------------------------------------------------
-bool Db::readRawImageTile(const quint8 epsg, const QString cam, const QString file,
-                      const QString usr, const QString session,
-                      int &id,
-                      QString &ux, QString &uy, QString &w, QString &h,
-                      QString &tmWhen, QString &tmSeen) {
-	Q_UNUSED(session); Q_UNUSED(epsg);
+bool Db::readRawImageTile(const QString &cam, const QString &file, const QString &usr, int &id, QString &ux, QString &uy,
+		QString &w, QString &h, QString &tmWhen, QString &tmSeen) {
     QString query =
-    		config->replacePrjSettings(ACFG_SQL_QRY_READ_RIMAGE_TILE.arg(cam).arg(file).arg(usr));
+    		config->replaceProjectSettings(ACFG_SQL_QRY_READ_RIMAGE_TILE.arg(cam).arg(file).arg(usr));
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     id =-1; tmWhen = ""; tmSeen = "";
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
@@ -148,14 +106,11 @@ bool Db::readRawImageTile(const quint8 epsg, const QString cam, const QString fi
 }
 
 // -------------------------------------------------------
-bool Db::readRawImage(const quint8 epsg, const QString cam, const QString file,
-                      const QString usr, const QString session,
-                      int &id, QString &tmWhen, QString &tmSeen) {
-	Q_UNUSED(session); Q_UNUSED(epsg);
+bool Db::readRawImage(const QString &cam, const QString &file, const QString &usr,  int &id, QString &tmWhen, QString &tmSeen) {
     QString query =
-    		config->replacePrjSettings(ACFG_SQL_QRY_READ_RIMAGE.arg(cam).arg(file).arg(usr));
+    		config->replaceProjectSettings(ACFG_SQL_QRY_READ_RIMAGE.arg(cam).arg(file).arg(usr));
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     id =-1; tmWhen = ""; tmSeen = "";
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
@@ -194,7 +149,7 @@ bool Db::writeRawImageTile(const bool insert, const int id,
              .arg(tmWhen).arg(tmSeen).arg(x).arg(y).arg(w).arg(h).arg(id);
   }
 
-  QSqlQuery write(db);
+  QSqlQuery write;
   if (!write.exec(lstr)) {
 //      out->error(write.lastError().text());
 	  qDebug() << write.lastError().text();
@@ -224,28 +179,13 @@ bool Db::writeRawImage(const bool insert, const int id,
              .arg(tmWhen).arg(tmSeen).arg(id);
   }
 
-  QSqlQuery write(db);
+  QSqlQuery write;
   if (!write.exec(lstr)) {
 //      out->error(write.lastError().text());
 	  qDebug() << write.lastError().text();
       return false;
   }
   return true;
-}
-
-int Db::getRecentId() {
-    QString query = config->replacePrjSettings("SELECT last_value from raw_census_rcns_id_seq;");
-    qDebug() << query;
-    QSqlQuery req(db);
-    if ( ! req.exec(query) ) {
-    	qDebug() << req.lastError().text();
-        return -1;
-    }
-    if (req.next()) {
-        return req.value(0).toInt();
-    }
-    return -1;
-
 }
 
 // -------------------------------------------------------
@@ -267,7 +207,7 @@ bool Db::writeRawCensus(const QString type,
    lstr = lstr.arg(type).arg(px).arg(py).arg(ux).arg(uy).arg(lx).arg(ly)
 		   .arg(epsg).arg(cam).arg(img).arg(user).arg(session);
    qDebug() << lstr;
-	QSqlQuery write(db);
+	QSqlQuery write;
 	if (!write.exec(lstr)) {
 		qDebug() << write.lastError().text();
 		return false;
@@ -278,11 +218,11 @@ bool Db::writeRawCensus(const QString type,
 }
 
 // -------------------------------------------------------
-bool Db::deleteRawCensus(int id, QString cam, QString img, QString user) {
-    QString query = config->replacePrjSettings(ACFG_SQL_QRY_DEL_RCENSUS
+bool Db::deleteRawCensus(int id, const QString & cam, const QString & img, const QString & user) {
+    QString query = config->replaceProjectSettings(ACFG_SQL_QRY_DEL_RCENSUS
     		.arg(id).arg(cam).arg(img).arg(user));
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
 
     	qDebug() << req.lastError().text();
@@ -292,10 +232,10 @@ bool Db::deleteRawCensus(int id, QString cam, QString img, QString user) {
 
 }
 
-void Db::readImageDone(const QString cam, QStringList & ready_list) {
-    QString query = config->replacePrjSettings(ACFG_SQL_QRY_READ_DONE.arg(cam));
+void Db::readImageDone(const QString& cam, QStringList & ready_list) {
+    QString query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_DONE.arg(cam));
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
         return;
@@ -312,7 +252,7 @@ bool Db::writeImageDone(const int imgRdy, const int id) {
   lstr = "UPDATE raw_images SET rdy = %1 WHERE rimg_id = %2;";
   lstr = lstr.arg(imgRdy).arg(id);
 
-  QSqlQuery write(db);
+  QSqlQuery write;
   if (!write.exec(lstr)) {
 	  qDebug() << write.lastError().text();
       return false;
@@ -322,32 +262,30 @@ bool Db::writeImageDone(const int imgRdy, const int id) {
 
 // -------------------------------------------------------
 void Db::UpdateObjectQuery(const QString cam, const QString img, QSqlQueryModel * model) {
-    QStringList usrAdmins = config->getAdmins();
     QString query;
-    if (config->prjSession().startsWith("Testdatensatz"))
-    	query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
+    if (config->getProjectId().startsWith("Testdatensatz"))
+    	query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
     else
-    	query = config->replacePrjSettings(ACFG_SQL_QRY_READ_RCENSUS.arg(cam).arg(img).arg(config->appUser()));
+    	query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_RCENSUS.arg(cam).arg(img).arg(config->getUser()));
     qDebug() << query;
     model->setQuery(query);
     return;
 }
 
 // -------------------------------------------------------
-bool Db::getImages(QTableWidget *result, QString type, QString filter, bool missing){
-	Q_UNUSED(type);
+bool Db::getImages(QTableWidget *result, bool missing){
 	QString query;
 	result->clearSelection();
 	result->clearContents();
 //	result->clear();
 	result->setRowCount(1);
 	if (missing)
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES_NOT_READY).arg(filter);
+		query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMAGES_NOT_READY);
 	else
-		query = config->replacePrjSettings(ACFG_SQL_QRY_READ_IMAGES).arg(filter);
+		query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMAGES);
 
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
         return false;
@@ -395,12 +333,12 @@ bool Db::getImages(QTableWidget *result, QString type, QString filter, bool miss
 QStringList Db::getSessionList() {
     QStringList sessionlist;
     QString query;
-    if (config->getAdmins().contains(config->appUser()))
-    	query = config->replacePrjSettings("SELECT project_id FROM projects where active>0");
+    if (config->getAdmin())
+    	query = config->replaceProjectSettings("SELECT project_id FROM projects where active>0");
     else
-    	query = config->replacePrjSettings("SELECT project_id FROM projects where active=1");
+    	query = config->replaceProjectSettings("SELECT project_id FROM projects where active=1");
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
         return sessionlist;
@@ -411,13 +349,13 @@ QStringList Db::getSessionList() {
     return sessionlist;
 }
 
-project * Db::getSessionParameters(QString session) {
+project * Db::getSessionParameters(const QString & session) {
     project * prj = new project;
     QString query =
-    		"SELECT project_id, flight_id, utm_sector, path, image_filter, session_type FROM "
+    		"SELECT project_id, flight_id, utm_sector, path, image_filter FROM "
     		"projects where project_id='" + session + "' ORDER BY project_id";
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
         return prj;
@@ -427,13 +365,11 @@ project * Db::getSessionParameters(QString session) {
     		prj->flight_id = QString(req.value(1).toString());
     		prj->utmSector = req.value(2).toInt();
     		prj->path = QString(req.value(3).toString());
-    		prj->filter = QString(req.value(4).toString());
-    		prj->session_type = QString(req.value(5).toString());
     }
     return prj;
 }
 
-QStringList Db::getCamList(QString session) {
+QStringList Db::getCamList(const QString & session) {
 	Q_UNUSED(session);
 //	QString query = "SELECT distinct cam FROM sync_utm32"
 	//STUB TODO: Get cams
@@ -444,12 +380,12 @@ QStringList Db::getCamList(QString session) {
 	return cams;
 }
 
-QStringList Db::getTrcList(QString session) {
+QStringList Db::getTrcList(const QString & session) {
 	QStringList trc_list;
 	QString query =
 			QString("SELECT distinct gps_trc FROM sync_utm32 where session='%1' ORDER BY gps_trc").arg(session);
     qDebug() << query;
-    QSqlQuery req(db);
+    QSqlQuery req;
     if ( ! req.exec(query) ) {
     	qDebug() << req.lastError().text();
         return trc_list;

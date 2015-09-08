@@ -1,18 +1,21 @@
 
 #include <QStyle>
+#include <QInputDialog>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "db.h"
+#include "ServerSelection.h"
 
-MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
+MainWindow::MainWindow(ConfigHandler *aConfig, Db * aDb)
     : QMainWindow(0), config(aConfig), ui(new Ui::MainWindow), db(aDb)
 {
 	qDebug() << "Main Window Construct";
     // Aufsetzen der GUI Grundumgebung + Logger
     ui->setupUi(this);
-    this->resize(QSize(config->guiWinWidth(),config->guiWinHeight()));
-    this->move(config->guiWinLeft(),config->guiWinTop());
-    this->setWindowTitle(config->appTitle()+" - "+config->appVersion());
+    resize(config->getAppSize());
+    move(config->getAppPosition());
+
+    this->setWindowTitle("BirdCensus");
 
     // Der QGIS Umgebung
     qgsPvrRegistry = QgsProviderRegistry::instance();
@@ -59,36 +62,31 @@ MainWindow::MainWindow(AppConfig *aConfig, Db * aDb)
     ui->tbwObjects->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui->tbwObjects->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    connect( ui->btnMapSelect,
-             SIGNAL(clicked()),
-             this,
-             SLOT(clearSelection()));
+    connect( ui->btnMapSelect, SIGNAL(clicked()), this, SLOT(clearSelection()));
 
-    connect( ui->btnMapRmObj,
-             SIGNAL(clicked()),
-             this,
-             SLOT(deleteSelection()));
+    connect( ui->btnMapRmObj, SIGNAL(clicked()), this, SLOT(deleteSelection()));
 
-    connect( imgSelector,
-             SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-             this,
-             SLOT(imgUpdateSelection()));
+    connect( imgSelector, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(imgUpdateSelection()));
 
-    connect( objSelector,
-             SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-             this,
-             SLOT(objUpdateSelection()));
+    connect( objSelector, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(objUpdateSelection()));
 
-    connect( ui->cmbSession, SIGNAL(currentIndexChanged(int)),
-    		this, SLOT(handleSessionSelection()));
+    connect( ui->cmbSession, SIGNAL(currentIndexChanged(int)), this, SLOT(handleSessionSelection()));
 
     connect( ui->chbHideMarker, SIGNAL(clicked(bool)), this, SLOT(hideMarker(bool)));
+
+    connect(ui->option_admin, SIGNAL(clicked()), this, SLOT(handleAdminPass()));
+
+    connect(ui->option_server, SIGNAL(clicked()),this, SLOT(handleServerSelection()));
 }
 
 // ------------------------------------------------------------------------
 void MainWindow::saveData() {
-   mapCanvas->doSaveData(config->curCam, config->curImg);
+   mapCanvas->doSaveData(config->current_cam, config->current_image);
    ovrCanvas->saveRawTile(false);
+	config->setAppPosition(pos());
+	config->setAppSize(size());
+	config->setAppMaximized(isMaximized());
+	config->sync();
 }
 
 // ------------------------------------------------------------------------
@@ -99,7 +97,7 @@ MainWindow::~MainWindow()
 
 // ------------------------------------------------------------------------
 void MainWindow::qgsCheckProviders() {
-    qDebug() << "QGIS PREFIX PATH IS "+config->qgsPrefixPath();
+    qDebug() << "QGIS PREFIX PATH IS "+config->getQGisPrefixPath();
     QString msg;
     qDebug() << "OPEN PROVIDER LIST";
     QStringList providers = qgsPvrRegistry->providerList();
@@ -108,7 +106,7 @@ void MainWindow::qgsCheckProviders() {
         qFatal("%s\n%s\n qgis : {\n  prefixPath=%s; \n  ... \n}",
                "Die Providerliste ist leer.",
                MNDW_ERR_MISSING_HINT_PFX,
-               qPrintable(config->qgsPrefixPath()) );
+               qPrintable(config->getQGisPrefixPath()) );
     }
     bool doneGdal = false;
     bool doneOgr = false;
@@ -164,7 +162,7 @@ void MainWindow::guiInitAdditionals() {
 void MainWindow::deleteSelection() {
 	QModelIndex index = objSelector->selectedRows(0).at(0);
 	int rcns_id = ui->tbwObjects->model()->data(index).toInt();
-	db->deleteRawCensus(rcns_id, selected_cam, selected_file, config->appUser());
+	db->deleteRawCensus(rcns_id, selected_cam, selected_file, config->getUser());
 	mapCanvas->UpdateObjectMarkers();
 }
 
@@ -196,7 +194,7 @@ void MainWindow::objUpdateSelection() {
 	mapCanvas->doCenter1by1(utm_x,utm_y);
 	if (mapCanvas->map_mode() == MAP_MODE_SELECT) {
 		mapCanvas->SelectObjectById(rcns_id);
-		if (user == config->appUser() || config->getAdmins().contains(config->appUser()))
+		if (user == config->getUser() || config->getAdmin())
 			ui->btnMapRmObj->setEnabled(true);
 	}
 }
@@ -213,9 +211,9 @@ void MainWindow::imgUpdateSelection()
 	selected_cam  = QString(ui->image_table->item(currentRow, 1)->text());
 
 	  ui->chbHideMarker->setChecked(false);
-	  if (!mapCanvas->doSaveData(config->curCam, config->curImg)) {
+	  if (!mapCanvas->doSaveData(config->current_cam, config->current_image)) {
 		  QMessageBox::critical(this,"Fehler","Fehler beim Sichern der Daten fuer"
-								"Metadaten fuer "+config->curCam+" Kamera "+config->curImg+
+								"Metadaten fuer "+config->current_cam+" Kamera "+config->current_image+
 								"\n konnte nicht gesichert werden!",
 							   "OK");
 		  imgSelector->clearSelection();
@@ -242,12 +240,12 @@ void MainWindow::imgUpdateSelection()
 		  imgSelector->clearSelection();
 		  return;
 	  }
-	  this->setWindowTitle(config->appTitle()+" - "+config->appVersion()+" - Kamera "
+	  this->setWindowTitle("BirdCensus - Kamera "
 			  + selected_cam +" - "+selected_file);
 	  ovrCanvas->doSelectFirstTile();
 
-	  config->curCam = selected_cam;
-	  config->curImg = selected_file;
+	  config->current_cam = selected_cam;
+	  config->current_image = selected_file;
 
 	  ui->tbxTasks->setCurrentIndex(1);
 	  mapCanvas->setFocus();
@@ -259,7 +257,8 @@ void MainWindow::imgUpdateSelection()
 	  ui->tbwObjects->hideColumn(5);
 	  ui->tbwObjects->hideColumn(6);
 	  mapCanvas->UpdateObjectMarkers();
-
+	  mapCanvas->setEnabled(true);
+	  mapCanvas->setEnabled(true);
  }
 // ----------------------------------------------------------------------
 
@@ -280,35 +279,33 @@ bool MainWindow::checkButtonByKey(QString tp) {
 void MainWindow::initSessionFrame() {
 	combobox_cam_filter->setEnabled(false);
 	combobox_trac_filter->setEnabled(false);
+	ui->cmbSession->clear();
 	ui->cmbSession->addItem("");
 	ui->cmbSession->addItems(db->getSessionList());
 }
 
 void MainWindow::handleSessionSelection() {
-	config->setPrjSession(ui->cmbSession->currentText());
-	if (config->prjSession().isEmpty())
+	config->setProjectId(ui->cmbSession->currentText());
+	if (config->getProjectId().isEmpty())
 		return;
-    project * prj = db->getSessionParameters(config->prjSession());
-    //TODO: set Paramters from project struct or use references
-    config->setPrjType(prj->session_type);
-    config->setPrjFlight(prj->flight_id);
-    config->setPrjFilter(prj->filter);
-    config->setPrjUtmSector(prj->utmSector);
-    config->setPrjPath(prj->path);
+    project * prj = db->getSessionParameters(config->getProjectId());
+    config->setFlightId(prj->flight_id);
+    config->setUtmSector(prj->utmSector);
+    config->setProjectPath(prj->path);
     delete prj;
     combobox_cam_filter->clear();
     combobox_trac_filter->clear();
     combobox_cam_filter->setEnabled(true);
     combobox_trac_filter->setEnabled(true);
 	combobox_cam_filter->addItem("");
-	combobox_cam_filter->addItems(db->getCamList(config->prjFlight()));
+	combobox_cam_filter->addItems(db->getCamList(config->getFlightId()));
 //	combobox_cam_filter->setMinimumWidth(combobox_cam_filter->minimumSize().width());
 	combobox_cam_filter->setCurrentIndex(0);
 	combobox_trac_filter->addItem("");
-	combobox_trac_filter->addItems(db->getTrcList(config->prjFlight()));
+	combobox_trac_filter->addItems(db->getTrcList(config->getFlightId()));
 	combobox_trac_filter->setCurrentIndex(0);
 
-	db->getImages(ui->image_table, config->prjType(), "TRUE", ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
 }
 
 void MainWindow::initFilters() {
@@ -332,6 +329,10 @@ void MainWindow::initFilters() {
     connect( ui->chbNotReady, SIGNAL(stateChanged(int)), this, SLOT(handleMissingCheckBox()));
 }
 
+/*
+ * TODO: Handle filters in one procedure. Also use maps.
+ */
+
 void MainWindow::handleCamFilter() {
 	// if last value (all cameras) is selected show all columns
 	// else only show selected column
@@ -341,7 +342,7 @@ void MainWindow::handleCamFilter() {
 	} else {
 		cam_filter = "";
 	}
-	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleTrcFilter() {
@@ -351,7 +352,7 @@ void MainWindow::handleTrcFilter() {
 	} else {
 		trac_filter = "";
 	}
-	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleImgFilter() {
@@ -365,7 +366,7 @@ void MainWindow::handleImgFilter() {
 		image_filter = "";
 	}
 
-	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
 }
 
 QString MainWindow::getFilterString() {
@@ -373,7 +374,7 @@ QString MainWindow::getFilterString() {
 }
 
 void MainWindow::handleMissingCheckBox() {
-	db->getImages(ui->image_table, config->prjType(), getFilterString(), ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
 }
 
 QAbstractButton * MainWindow::GetButtonByKey(QButtonGroup * button_group, QString key, QString value) {
@@ -388,4 +389,43 @@ QAbstractButton * MainWindow::GetButtonByKey(QButtonGroup * button_group, QStrin
 
 void MainWindow::RefreshObjectList() {
 	object_query_model->query().exec();
+}
+
+void MainWindow::handleAdminPass() {
+	bool ok;
+	QString password;
+	password = QInputDialog::getText(this, tr("Admin Zugang freischalten"), tr("Passwort:"), QLineEdit::Password,QString(),&ok);
+	/*
+	 * MD5 sum of password
+	 * 72ead00ca661b02c2dd8e677433ad390
+	 */
+
+	QCryptographicHash password_hash(QCryptographicHash::Md5);
+	password_hash.addData(password.toStdString().c_str());
+	if (ok ) {
+		if(QString(QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Md5).toHex())
+				== QString("72ead00ca661b02c2dd8e677433ad390")) {
+			QMessageBox message;
+			message.setText(tr("Adminzugang erfolgreich freigeschaltet."));
+			message.setStandardButtons(QMessageBox::Ok);
+			message.exec();
+			config->setAdmin(true);
+		} else {
+			QMessageBox message;
+			message.setText("Admin Freischaltung: Falsches Passwort.");
+			message.setStandardButtons(QMessageBox::Ok);
+			message.exec();
+		}
+	}
+}
+
+void MainWindow::handleServerSelection() {
+	ServerSelection server_selection(config);
+	server_selection.exec();
+	db->OpenDatabase();
+	mapCanvas->setEnabled(false);
+	ovrCanvas->setEnabled(false);
+	ui->image_table->clearContents();
+	object_query_model->clear();
+	initSessionFrame();
 }

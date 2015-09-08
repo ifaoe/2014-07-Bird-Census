@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------
 OvrMapCanvas::OvrMapCanvas(QWidget *parent,
                            Ui::MainWindow* aUI,
-                           const AppConfig* aConfig,
+                           ConfigHandler* aConfig,
                            Db* aDB,
                            CnsMapCanvas* aImgCanvas,
                            QgsMapLayerRegistry* lyrRegistry) :
@@ -47,9 +47,8 @@ void OvrMapCanvas::doSelectNextTile() {
             int rawImgID = -1;
             QString rawImgTmWhen = "";
             QString rawImgTmSeen = "";
-            db->readRawImage(config->prjUtmSector(),config->curCam, config->curImg,
-                             config->appUser(), config->prjSession(),
-                             rawImgID, rawImgTmWhen, rawImgTmSeen);
+            db->readRawImage(config->getCurrentCam(), config->getCurrentImage(), config->getUser(), rawImgID, rawImgTmWhen,
+            		rawImgTmSeen);
             db->writeImageDone(1, rawImgID);
             int curRow = ui->image_table->selectionModel()->selectedRows().at(0).row();
             if (curRow < ui->image_table->rowCount()) {
@@ -82,10 +81,10 @@ bool OvrMapCanvas:: saveRawTile(bool insert) {
       QString   tmH    = QString::number(curTileH,'f',2);
       return db->writeRawImageTile(false,
                         rawImgTileID,
-                        config->prjUtmSector(),
-						config->curCam, config->curImg,
-                        config->appUser(),
-                        config->prjSession(),
+                        config->getUtmSector(),
+						config->getCurrentCam(), config->getCurrentImage(),
+                        config->getUser(),
+                        config->getProjectId(),
                         rawImgTileUX+" "+tmUX,
                         rawImgTileUY+" "+tmUY,
                         rawImgTileW+" "+tmW,
@@ -93,10 +92,10 @@ bool OvrMapCanvas:: saveRawTile(bool insert) {
                         rawImgTileTmWhen+" "+tmWhen,
                         rawImgTileTmSeen+" "+tmSeen);
     } else {
-      return  db->writeRawImageTile(true,rawImgTileID, config->prjUtmSector(),
-    		  	  	  	  config->curCam, config->curImg,
-                          config->appUser(),
-                          config->prjSession(),
+      return  db->writeRawImageTile(true,rawImgTileID, config->getUtmSector(),
+    		  	  	  	  config->getCurrentCam(), config->getCurrentImage(),
+                          config->getUser(),
+                          config->getProjectId(),
                           "",
                           "",
                           "",
@@ -110,13 +109,8 @@ bool OvrMapCanvas:: saveRawTile(bool insert) {
 bool OvrMapCanvas:: readRawTile() {
 	// TODO: TODO: TODO: CLEANUP
     // Datensatz verfuegbar?
-    if (!db->readRawImageTile(config->prjUtmSector(),
-    						config->curCam, config->curImg,
-                          config->appUser(),
-                          config->prjSession(),
-                          rawImgTileID, rawImgTileUX, rawImgTileUY,
-                          rawImgTileW, rawImgTileH,
-                          rawImgTileTmWhen, rawImgTileTmSeen) ) {
+    if (!db->readRawImageTile( config->getCurrentCam(), config->getCurrentImage(), config->getUser(), rawImgTileID,
+    		rawImgTileUX, rawImgTileUY, rawImgTileW, rawImgTileH, rawImgTileTmWhen, rawImgTileTmSeen) ) {
         return false;
     }
     if (rawImgTileID<0) {
@@ -124,12 +118,8 @@ bool OvrMapCanvas:: readRawTile() {
 
         done = saveRawTile(true)
                &&
-               db->readRawImageTile(config->prjUtmSector(),
-            		   	   	   	   	   	 config->curCam, config->curImg,
-                                         config->appUser(), config->prjSession(),
-                                         rawImgTileID, rawImgTileUX, rawImgTileUY,
-                                         rawImgTileW, rawImgTileH,
-                                         rawImgTileTmWhen, rawImgTileTmSeen) ;
+               db->readRawImageTile(config->getCurrentCam(), config->getCurrentImage(), config->getUser(), rawImgTileID,
+            		   rawImgTileUX, rawImgTileUY, rawImgTileW, rawImgTileH, rawImgTileTmWhen, rawImgTileTmSeen) ;
         if (! done ) return false;
     }
     rawImgTileTm = QDateTime::currentDateTimeUtc();
@@ -224,7 +214,7 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
 
     QString props = QString("Polygon?")+
                     QString("crs=epsg:326")+
-                    QString::number(config->prjUtmSector());
+                    QString::number(config->getUtmSector());
 
     qgs_image_tiles_ = new QgsVectorLayer(props, "TILES", "memory");
     qgs_image_tiles_->dataProvider()->addAttributes(fields);
@@ -265,11 +255,11 @@ bool OvrMapCanvas::openImageTiles(QString strCam, QString strFile) {
             fet.setGeometry( geom );
             done = done && fet.setAttribute("CAM",strCam.toInt());
             done = done && fet.setAttribute("FILE",strFile);
-            done = done && fet.setAttribute("SESSION",config->prjSession());
-            done = done && fet.setAttribute("SECTOR",config->prjUtmSector());
-            done = done && fet.setAttribute("USER",config->appUser());
-            done = done && fet.setAttribute("TWIDTH",config->imgTileWidth());
-            done = done && fet.setAttribute("THEIGHT",config->imgTileHeight());
+            done = done && fet.setAttribute("SESSION",config->getProjectId());
+            done = done && fet.setAttribute("SECTOR",config->getUtmSector());
+            done = done && fet.setAttribute("USER",config->getUser());
+            done = done && fet.setAttribute("TWIDTH",config->getTileWidth());
+            done = done && fet.setAttribute("THEIGHT",config->getTileHeight());
             done = done && fet.setAttribute("TCOL",x);
             done = done && fet.setAttribute("TROW",y);
             done = done && fet.setAttribute("IX",fcnt);
@@ -329,7 +319,7 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
 
     QString props = QString("Polygon?")+
                     QString("crs=epsg:326")+
-                    QString::number(config->prjUtmSector());
+                    QString::number(config->getUtmSector());
 
     qgs_image_envelope_ = new QgsVectorLayer(props, "ENVELOPE", "memory");
 
@@ -349,11 +339,11 @@ bool OvrMapCanvas::openImageEnvelope(QString strCam,
     bool done = true;
     done = done && fet.setAttribute("CAM",strCam.toInt());
     done = done && fet.setAttribute("FILE",strFile);
-    done = done && fet.setAttribute("SESSION",config->prjSession());
-    done = done && fet.setAttribute("SECTOR",config->prjUtmSector());
-    done = done && fet.setAttribute("USER",config->appUser());
-    done = done && fet.setAttribute("TWIDTH",config->imgTileWidth());
-    done = done && fet.setAttribute("THEIGHT",config->imgTileHeight());
+    done = done && fet.setAttribute("SESSION",config->getProjectId());
+    done = done && fet.setAttribute("SECTOR",config->getUtmSector());
+    done = done && fet.setAttribute("USER",config->getUser());
+    done = done && fet.setAttribute("TWIDTH",config->getTileWidth());
+    done = done && fet.setAttribute("THEIGHT",config->getTileHeight());
     if (!done) return false;
     qgs_image_envelope_->startEditing();
     qgs_image_envelope_->addFeature(fet,true);

@@ -10,7 +10,6 @@
 #include <QStringList>
 #include <qgsproviderregistry.h>
 #include <qgsmaplayerregistry.h>
-#include "appconfig.h"
 #include "ovrmapcanvas.h"
 #include "cnsmapcanvas.h"
 #include "db.h"
@@ -29,11 +28,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(AppConfig *aConfig, Db * aDb);
+    explicit MainWindow(ConfigHandler *aConfig, Db * aDb);
     ~MainWindow();
     
 private:
-    AppConfig *config;
+    ConfigHandler *config;
     Ui::MainWindow *ui = 0;
     Db *db = 0;
     QgsProviderRegistry *qgsPvrRegistry = 0;
@@ -86,6 +85,9 @@ public slots:
     void handleTrcFilter();
     void handleImgFilter();
     void handleMissingCheckBox();
+private slots:
+	void handleAdminPass();
+	void handleServerSelection();
 };
 
 #endif // MAINWINDOW_H

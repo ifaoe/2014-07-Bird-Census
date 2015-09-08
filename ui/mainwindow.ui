@@ -146,7 +146,7 @@ QToolBox::tab:selected {
 }*/</string>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tbxTasksPage1">
              <attribute name="title">
@@ -232,7 +232,7 @@ QToolBox::tab:selected {
                     <number>3</number>
                    </property>
                    <attribute name="horizontalHeaderVisible">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </attribute>
                    <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
                     <bool>false</bool>
@@ -244,9 +244,21 @@ QToolBox::tab:selected {
                     <bool>false</bool>
                    </attribute>
                    <row/>
-                   <column/>
-                   <column/>
-                   <column/>
+                   <column>
+                    <property name="text">
+                     <string>TRC</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>CAM</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>IMG</string>
+                    </property>
+                   </column>
                   </widget>
                  </item>
                 </layout>
@@ -805,6 +817,68 @@ QToolBox::tab:selected {
               </item>
              </layout>
             </widget>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>Optionen</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="0" column="0">
+               <widget class="QToolButton" name="option_server">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Server wählen</string>
+                </property>
+                <property name="icon">
+                 <iconset theme="server">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="toolButtonStyle">
+                 <enum>Qt::ToolButtonTextBesideIcon</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <widget class="QToolButton" name="option_admin">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Admin Zugang freischalten</string>
+                </property>
+                <property name="icon">
+                 <iconset theme="dialog-password">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="toolButtonStyle">
+                 <enum>Qt::ToolButtonTextBesideIcon</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -891,7 +965,7 @@ QToolBox::tab:selected {
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="btgMapMode"/>
   <buttongroup name="button_group_types"/>
+  <buttongroup name="btgMapMode"/>
  </buttongroups>
 </ui>

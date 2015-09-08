@@ -17,7 +17,7 @@ void qCritical(QString text) {
 
 CnsMapCanvas::CnsMapCanvas(QWidget *parent,
                            Ui::MainWindow *aUI,
-                           const AppConfig *aConfig,
+                           ConfigHandler *aConfig,
                            Db* aDB,
                            QgsMapLayerRegistry *lyrRegistry) :
     QgsMapCanvas(parent),
@@ -220,7 +220,7 @@ void CnsMapCanvas::doUpdateStatus() {
         break;
     }
     QString str;
-    ui->lblUTM->setText(str.sprintf("UTM%d: %010.2f %010.2f m", config->prjUtmSector(),
+    ui->lblUTM->setText(str.sprintf("UTM%d: %010.2f %010.2f m", config->getUtmSector(),
                                     dblMapCursorUtmX, dblMapCursorUtmY));
     ui->lblMode->setText(str.sprintf("Mode: %s ",qPrintable(strMode)));
     ui->lblScale->setText(str.sprintf("Skale 1: %f", this->scale()/72.0));
@@ -325,7 +325,7 @@ bool CnsMapCanvas::doOpenRasterLayer(QString cam, QString file) {
 	bool done = true;
 	done = done &&	openEditLayer(cam, file);
     done = done && openPolyLayer(cam, file);
-    done = done && openRasterLayer(config->prjPath(), cam, file);
+    done = done && openRasterLayer(config->getProjectPath(), cam, file);
 
     refreshLayerSet();
     return done;
@@ -345,8 +345,8 @@ bool CnsMapCanvas::saveData(const QString cam, const QString file) {
     QDateTime tmNow = QDateTime::currentDateTimeUtc();
     QString tmSeen = QString::number(rawImgTm.secsTo(tmNow));
     QString tmWhen = rawImgTm.toString(Qt::ISODate);
-    db->writeRawImage(false,rawImgID, config->prjUtmSector(), cam, file,
-                      config->appUser(), config->prjSession(),
+    db->writeRawImage(false,rawImgID, config->getUtmSector(), cam, file,
+                      config->getUser(), config->getProjectId(),
                       rawImgTmWhen+" "+tmWhen, rawImgTmSeen+" "+tmSeen);
     return true;
 }
@@ -374,8 +374,8 @@ void CnsMapCanvas::doCanvasClicked(const QgsPoint &point,
         uy = point.y();
 
         QString type = ui->button_group_types->checkedButton()->property("dbvalue").toString();
-        db->writeRawCensus(type,config->prjUtmSector(), curCam , curImg, config->appUser(),
-        		config->prjSession(),
+        db->writeRawCensus(type,config->getUtmSector(), curCam , curImg, config->getUser(),
+        		config->getProjectId(),
 				QString::number(py), QString::number(px),
 				QString::number(ux, 'g', 15), QString::number(uy, 'g', 15),
 				QString::number(lon, 'g', 15), QString::number(lat, 'g', 15));
@@ -404,7 +404,7 @@ bool CnsMapCanvas::openEditLayer(const QString strCam, const QString strFile) {
 
     QString props = QString("Point?")+
                     QString("crs=epsg:326")+
-                    QString::number(config->prjUtmSector());
+                    QString::number(config->getUtmSector());
 
     qgis_edit_layer_ = new QgsVectorLayer(props, "EDIT", "memory");
 
@@ -469,28 +469,28 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
 
 
     QgsContrastEnhancement* qgsContrastEnhRed = new QgsContrastEnhancement(QGis::UInt16);
-    qgsContrastEnhRed->setMinimumValue(config->imgMinRed());
-    qgsContrastEnhRed->setMaximumValue(config->imgMaxRed());
+    qgsContrastEnhRed->setMinimumValue(config->getRedMinValue());
+    qgsContrastEnhRed->setMaximumValue(config->getRedMaxValue());
     qgsContrastEnhRed->setContrastEnhancementAlgorithm (
     		QgsContrastEnhancement::StretchToMinimumMaximum);
 
     QgsContrastEnhancement* qgsContrastEnhGreen = new QgsContrastEnhancement(QGis::UInt16);
-    qgsContrastEnhGreen->setMinimumValue(config->imgMinGreen());
-    qgsContrastEnhGreen->setMaximumValue(config->imgMaxGreen());
+    qgsContrastEnhGreen->setMinimumValue(config->getGreenMinValue());
+    qgsContrastEnhGreen->setMaximumValue(config->getGreenMaxValue());
     qgsContrastEnhGreen->setContrastEnhancementAlgorithm (
     		QgsContrastEnhancement::StretchToMinimumMaximum);
 
     QgsContrastEnhancement* qgsContrastEnhBlue = new QgsContrastEnhancement(QGis::UInt16);
-    qgsContrastEnhBlue->setMinimumValue(config->imgMinBlue());
-    qgsContrastEnhBlue->setMaximumValue(config->imgMaxBlue());
+    qgsContrastEnhBlue->setMinimumValue(config->getBlueMinValue());
+    qgsContrastEnhBlue->setMaximumValue(config->getBlueMaxValue());
     qgsContrastEnhBlue->setContrastEnhancementAlgorithm (
     		QgsContrastEnhancement::StretchToMinimumMaximum);
 
     QgsMultiBandColorRenderer* renderer = new QgsMultiBandColorRenderer(
                 qgsImgProvider,
-                config->imgBandRed(),
-                config->imgBandGreen(),
-                config->imgBandBlue() ,
+                config->getRedChannel(),
+                config->getGreenChannel(),
+                config->getBlueChannel(),
                 qgsContrastEnhRed,
                 qgsContrastEnhGreen,
                 qgsContrastEnhBlue);
@@ -502,22 +502,18 @@ bool CnsMapCanvas::openRasterLayer(const QString imagePath,
     qgsTrfm2LonLat.setSourceCrs(crsUTM);
     qgsTrfm2LonLat.setDestCRS(crs4326);
 
-    if (!db->readRawImage(config->prjUtmSector(),strCam, strFile,
-                          config->appUser(), config->prjSession(),
-                          rawImgID, rawImgTmWhen, rawImgTmSeen) ) {
+    if (!db->readRawImage(strCam, strFile, config->getUser(), rawImgID, rawImgTmWhen, rawImgTmSeen) ) {
         return false;
     }
     if (rawImgID<0) {
         bool done = false;
         done = db->writeRawImage(true, rawImgID,
-                          config->prjUtmSector(), strCam,
-                          strFile, config->appUser(), config->prjSession(),
+                          config->getUtmSector(), strCam,
+                          strFile, config->getUser(), config->getProjectId(),
                           rawImgTmWhen, rawImgTmSeen)
                &&
 
-               db->readRawImage(config->prjUtmSector(), strCam, strFile,
-                         config->appUser(), config->prjSession(),
-                         rawImgID, rawImgTmWhen, rawImgTmSeen);
+               db->readRawImage(strCam, strFile, config->getUser(), rawImgID, rawImgTmWhen, rawImgTmSeen);
         if (! done ) return false;
     }
     rawImgTm = QDateTime::currentDateTimeUtc();
@@ -531,7 +527,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     	qgsLayerRegistry->removeMapLayer(qgis_poly_layer_->id());
          qgis_poly_layer_ = 0;
     }
-    QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->prjUtmSector());
+    QString uri = QString("Polygon?crs=epsg:326")+QString::number(config->getUtmSector());
     qgis_poly_layer_ = new QgsVectorLayer(uri, "Polygon Layer", "memory");
 
     QgsGeometry *validPoly = db->readValidPolygon(strCam, strFile)->buffer(1e-8,0);
@@ -539,7 +535,7 @@ bool CnsMapCanvas::openPolyLayer(QString strCam, QString strFile) {
     QgsGeometry *invPoly= imgEnv->difference(validPoly);
 
     QgsFillSymbolV2 * symbol = new QgsFillSymbolV2;
-    if (config->getAdmins().contains(config->appUser()))
+    if (config->getAdmin())
     	symbol->setAlpha(0.3);
     else
     	symbol->setAlpha(1.0);
@@ -628,6 +624,8 @@ void CnsMapCanvas::UpdateObjectMarkers() {
 	}
 	qgis_edit_layer_->reload();
 	this->refresh();
+	ui->tbwObjects->resizeColumnsToContents();
+	ui->tbwObjects->horizontalHeader()->setStretchLastSection(true);
 }
 
 void CnsMapCanvas::UpdateObjectSelection() {
@@ -649,7 +647,7 @@ bool CnsMapCanvas::SelectObjectByLocation(const QgsPoint & point) {
 	double min_dist = 1.0;
 	for (QMap<int, QgsPoint*>::Iterator it = object_locations_.begin(); it!=object_locations_.end(); ++it) {
 		double cur_dist = it.value()->sqrDist(point);
-		if (cur_dist < SELECT_DIST && cur_dist < min_dist) {
+		if (cur_dist < config->getSelectDistance() && cur_dist < min_dist) {
 			min_dist = cur_dist;
 			min_id = it.key();
 		}
