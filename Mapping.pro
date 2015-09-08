@@ -48,7 +48,6 @@ unix: LIBS += -L/usr/lib/\
  -lqgis_core \
  -lqgis_gui \
  -lconfig++ \
- -lboost_date_time
  
 RESOURCES += ui/style.qrc
 
