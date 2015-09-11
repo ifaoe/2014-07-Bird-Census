@@ -15,6 +15,7 @@ MainWindow::MainWindow(ConfigHandler *aConfig, Db * aDb)
     resize(config->getAppSize());
     move(config->getAppPosition());
 
+
     this->setWindowTitle("BirdCensus");
 
     // Der QGIS Umgebung
@@ -50,6 +51,8 @@ MainWindow::MainWindow(ConfigHandler *aConfig, Db * aDb)
 
 	initFilters();
 	initSessionFrame();
+
+	filter_map["std"] = "TRUE";
 
     object_query_model = new QSqlQueryModel;
     ui->tbwObjects->setModel(object_query_model);
@@ -305,7 +308,7 @@ void MainWindow::handleSessionSelection() {
 	combobox_trac_filter->addItems(db->getTrcList(config->getFlightId()));
 	combobox_trac_filter->setCurrentIndex(0);
 
-	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::initFilters() {
@@ -338,43 +341,45 @@ void MainWindow::handleCamFilter() {
 	// else only show selected column
 	QString cam = combobox_cam_filter->currentText();
 	if(!cam.isEmpty()) {
-		cam_filter = " AND cam LIKE '" + cam + "'";
+		filter_map["cam"] = "cam='" + cam + "'";
 	} else {
-		cam_filter = "";
+		filter_map.remove("cam");
 	}
-	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
+
+	db->getImages(ui->image_table, getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleTrcFilter() {
 	QString trc = combobox_trac_filter->currentText();
 	if (!trc.isEmpty()) {
-		trac_filter = " AND trc=" + trc;
+		filter_map["trc"] = "trc=" + trc;
 	} else {
-		trac_filter = "";
+		filter_map.remove("trc");
 	}
-	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, getFilterString(), ui->chbNotReady->isChecked());
 }
 
 void MainWindow::handleImgFilter() {
 	QString img = lineedit_image_filter->text();
 	if (!img.isEmpty()) {
 		if (img.startsWith("hd",Qt::CaseInsensitive))
-			image_filter = " AND img LIKE 'HD" + img.remove(0,2) + "'";
+			filter_map["img"] = "img LIKE 'HD" + img.remove(0,2) + "'";
 		else
-			image_filter = " AND img LIKE 'HD" + img + "'";
+			filter_map["img"] = "img LIKE 'HD" + img + "'";
 	} else {
-		image_filter = "";
+		filter_map.remove("img");
 	}
 
-	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, getFilterString(), ui->chbNotReady->isChecked());
 }
 
 QString MainWindow::getFilterString() {
-	return "TRUE" + cam_filter + trac_filter + image_filter;
+	QStringList filter_list =  filter_map.values();
+	return filter_list.join(" AND ");
 }
 
 void MainWindow::handleMissingCheckBox() {
-	db->getImages(ui->image_table, ui->chbNotReady->isChecked());
+	db->getImages(ui->image_table, getFilterString(), ui->chbNotReady->isChecked());
 }
 
 QAbstractButton * MainWindow::GetButtonByKey(QButtonGroup * button_group, QString key, QString value) {

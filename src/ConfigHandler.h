@@ -120,12 +120,12 @@ const QString ACFG_SQL_QRY_READ_ID_MAP      =
 const QString ACFG_SQL_QRY_READ_DONE        =
 		"SELECT distinct(img) FROM raw_images WHERE cam = '%1' AND session = '$(session)' AND rdy=1";
 const QString ACFG_SQL_QRY_READ_IMAGES =
-		"SELECT trc, cam, img FROM image_properties WHERE project_list @> ARRAY['$(session)'] "
+		"SELECT trc, cam, img FROM image_properties WHERE %1 AND project_list @> ARRAY['$(session)'] "
 		"ORDER BY trc, cam, img";
 const QString ACFG_SQL_QRY_READ_IMAGES_NOT_READY =
 		"SELECT i.trc, i.cam, i.img, r.rdy FROM "
 		"(SELECT trc, cam, img FROM image_properties WHERE project_list @> ARRAY['$(session)'] )as i "
-		"LEFT JOIN (SELECT cam, img, rdy FROM raw_images WHERE session='$(session)' AND rdy=1) as r "
+		"LEFT JOIN (SELECT cam, img, rdy FROM raw_images WHERE %1 AND session='$(session)' AND rdy=1) as r "
 		"ON i.cam=r.cam AND i.img=r.img "
 		"WHERE r.rdy IS NULL ORDER BY i.trc, i.cam, i.img";
 const QString ACFG_SQL_QRY_READ_VALIDPOLY =

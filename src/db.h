@@ -37,7 +37,7 @@ public:
 
     bool OpenDatabase();
 
-    bool getImages(QTableWidget *result, bool missing);
+    bool getImages(QTableWidget *result, QString filter, bool missing);
 
     void UpdateObjectQuery(const QString cam, const QString img, QSqlQueryModel * model);
 

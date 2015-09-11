@@ -44,10 +44,7 @@ private:
     QString selected_file;
     QString selected_cam;
 
-    QString filter = "WHERE TRUE";
-    QString cam_filter = "";
-    QString trac_filter = "";
-    QString image_filter = "";
+    QMap<QString, QString> filter_map;
 
     QString edtCurKey;
     QString edtCurView;

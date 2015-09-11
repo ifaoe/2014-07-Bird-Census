@@ -262,7 +262,7 @@ bool Db::writeImageDone(const int imgRdy, const int id) {
 // -------------------------------------------------------
 void Db::UpdateObjectQuery(const QString cam, const QString img, QSqlQueryModel * model) {
     QString query;
-    if (config->getProjectId().startsWith("Testdatensatz"))
+    if (!config->getProjectId().startsWith("Testdatensatz") || config->getAdmin())
     	query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_RCENSUS_ADMIN.arg(cam).arg(img));
     else
     	query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_RCENSUS.arg(cam).arg(img).arg(config->getUser()));
@@ -272,16 +272,16 @@ void Db::UpdateObjectQuery(const QString cam, const QString img, QSqlQueryModel 
 }
 
 // -------------------------------------------------------
-bool Db::getImages(QTableWidget *result, bool missing){
+bool Db::getImages(QTableWidget *result, QString filter, bool missing){
 	QString query;
 	result->clearSelection();
 	result->clearContents();
 //	result->clear();
 	result->setRowCount(1);
 	if (missing)
-		query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMAGES_NOT_READY);
+		query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMAGES_NOT_READY.arg(filter));
 	else
-		query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMAGES);
+		query = config->replaceProjectSettings(ACFG_SQL_QRY_READ_IMAGES.arg(filter));
 
     qDebug() << query;
     QSqlQuery req;
